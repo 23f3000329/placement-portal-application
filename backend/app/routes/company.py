@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from app.extensions import db
-from app.models import Company, Job, Application
+from app.models import Company, Job, Application, Placement
 
 company_bp = Blueprint('company', __name__)
 
@@ -94,3 +94,26 @@ def update_application(id):
 
     return jsonify({"message": "Status updated"})
 
+
+@company_bp.route('/application/<int:id>/select', methods=['POST'])
+@jwt_required()
+def select_student(id):
+    if not company_required():
+        return jsonify({"error": "Unauthorized"}), 403
+
+    application = Application.query.get(id)
+    if not application:
+        return jsonify({"error": "Application not found"}), 404
+
+    application.status = "selected"
+
+    placement = Placement(
+        student_id=application.student_id,
+        company_id=application.job.company_id,
+        salary=500000  # dummy for now
+    )
+
+    db.session.add(placement)
+    db.session.commit()
+
+    return jsonify({"message": "Student selected"})

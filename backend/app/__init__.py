@@ -1,6 +1,7 @@
 from flask import Flask
 from .config import Config
-from .extensions import db, jwt, bcrypt, cors
+from .extensions import db, jwt, bcrypt, cors, cache
+
 
 def create_app():
     app=Flask(__name__)
@@ -9,6 +10,7 @@ def create_app():
     jwt.init_app(app)
     bcrypt.init_app(app)
     cors.init_app(app)
+    cache.init_app(app)
 
     from .routes.auth import auth_bp
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
@@ -19,6 +21,9 @@ def create_app():
     from .routes.company import company_bp
     app.register_blueprint(company_bp, url_prefix="/api/company")
 
+    from .routes.student import student_bp
+    app.register_blueprint(student_bp, url_prefix="/api/student")
+
     from .models import User, Company, Student, Job, Application, Placement
 
     with app.app_context():
@@ -28,7 +33,7 @@ def create_app():
     return app
 
 from .models.user import User
-from .extensions import db, bcrypt
+from .extensions import db, bcrypt, cache
 
 def create_admin():
     if not User.query.filter_by(role="admin").first():

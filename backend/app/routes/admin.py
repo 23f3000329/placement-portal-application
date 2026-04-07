@@ -81,3 +81,52 @@ def get_students():
         })
 
     return jsonify(result)
+
+from app.models import Job
+
+@admin_bp.route('/jobs', methods=['GET'])
+@jwt_required()
+def get_jobs():
+    if not admin_required():
+        return jsonify({"error": "Unauthorized"}), 403
+
+    jobs = Job.query.all()
+
+    result = []
+    for j in jobs:
+        result.append({
+            "id": j.id,
+            "title": j.title,
+            "status": j.status
+        })
+
+    return jsonify(result)
+
+
+@admin_bp.route('/approve-job/<int:id>', methods=['PUT'])
+@jwt_required()
+def approve_job(id):
+    if not admin_required():
+        return jsonify({"error": "Unauthorized"}), 403
+
+    job = Job.query.get(id)
+    if not job:
+        return jsonify({"error": "Job not found"}), 404
+
+    job.status = "approved"
+    db.session.commit()
+
+    return jsonify({"message": "Job approved"})
+
+@admin_bp.route('/stats', methods=['GET'])
+@jwt_required()
+def get_stats():
+    if not admin_required():
+        return jsonify({"error": "Unauthorized"}), 403
+
+    return jsonify({
+        "students": Student.query.count(),
+        "companies": Company.query.count(),
+        "jobs": Job.query.count(),
+        "applications": Application.query.count()
+    })

@@ -1,4 +1,4 @@
-from app.extensions import db
+from app.extensions import db, cache
 
 class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -12,3 +12,4 @@ class Student(db.Model):
 
     # relationship with applications
     applications = db.relationship('Application', backref='student', lazy=True)
+
