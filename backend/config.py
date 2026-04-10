@@ -17,12 +17,14 @@ class Config:
     CELERY_BROKER_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
     CELERY_RESULT_BACKEND = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
-    MAIL_SERVER = os.getenv("MAIL_SERVER", "smtp.gmail.com")
-    MAIL_PORT = int(os.getenv("MAIL_PORT", 587))
-    MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", "True") == "True"
-    MAIL_USERNAME = os.getenv("MAIL_USERNAME", "")
-    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", "")
-    MAIL_DEFAULT_SENDER = os.getenv("MAIL_USERNAME", "noreply@ppa.edu")
+    # MailHog settings (runs locally on port 1025)
+    MAIL_SERVER = "localhost"
+    MAIL_PORT = 1025
+    MAIL_USE_TLS = False
+    MAIL_USE_SSL = False
+    MAIL_USERNAME = None
+    MAIL_PASSWORD = None
+    MAIL_DEFAULT_SENDER = "noreply@ppa.edu"
     ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@institute.edu")
 
     CACHE_TIMEOUT = 300  # 5 minutes

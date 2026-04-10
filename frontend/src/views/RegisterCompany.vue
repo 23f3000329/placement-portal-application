@@ -1,95 +1,81 @@
 <template>
   <div class="auth-page">
-    <div class="card" style="width:100%;max-width:500px;padding:28px">
-      <div class="auth-logo">Placement<span>Portal</span></div>
-      <h2 style="text-align:center;margin-bottom:6px;font-weight:500;color:var(--text2)">Company Registration</h2>
-      <p style="text-align:center;color:var(--text3);font-size:0.85rem;margin-bottom:20px">Your account needs admin approval before you can log in.</p>
-
-      <div v-if="success" style="background:var(--green-bg);color:var(--green-text);padding:12px;border-radius:var(--radius);margin-bottom:14px;font-size:0.88rem">
-        ✓ Registration submitted! You'll be able to log in after admin approval.
-        <RouterLink to="/login" style="display:block;margin-top:8px;font-weight:500">Back to login →</RouterLink>
-      </div>
+    <div class="auth-card card" style="max-width:480px">
+      <div class="auth-logo">Company <span>Register</span></div>
+      <div v-if="error"   class="error-msg">{{ error }}</div>
+      <div v-if="success" class="success-msg">{{ success }}</div>
 
       <template v-if="!success">
-        <div v-if="error" class="error-msg">{{ error }}</div>
-        <div class="form-group">
-          <label>Company name *</label>
-          <input v-model="form.name" class="form-control" placeholder="Razorpay India Ltd" />
-        </div>
         <div class="form-grid-2">
           <div class="form-group">
-            <label>Email *</label>
-            <input v-model="form.email" type="email" class="form-control" placeholder="hr@company.com" />
+            <label>Company Name *</label>
+            <input v-model="form.name" class="form-control" />
           </div>
-          <div class="form-group">
-            <label>Password *</label>
-            <input v-model="form.password" type="password" class="form-control" placeholder="••••••••" />
-          </div>
-        </div>
-        <div class="form-grid-2">
           <div class="form-group">
             <label>Industry</label>
-            <select v-model="form.industry" class="form-control">
-              <option value="">Select</option>
-              <option v-for="i in industries" :key="i">{{ i }}</option>
-            </select>
+            <input v-model="form.industry" class="form-control" placeholder="IT / Finance…" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email *</label>
+          <input v-model="form.email" type="email" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label>Password *</label>
+          <input v-model="form.password" type="password" class="form-control" />
+        </div>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label>HR Name</label>
+            <input v-model="form.hr_name" class="form-control" />
           </div>
           <div class="form-group">
-            <label>Location</label>
-            <input v-model="form.location" class="form-control" placeholder="Bangalore" />
+            <label>HR Contact</label>
+            <input v-model="form.hr_contact" class="form-control" />
           </div>
         </div>
         <div class="form-group">
           <label>Website</label>
-          <input v-model="form.website" class="form-control" placeholder="https://company.com" />
-        </div>
-        <div class="form-grid-2">
-          <div class="form-group">
-            <label>HR contact name</label>
-            <input v-model="form.hr_name" class="form-control" placeholder="Jane Smith" />
-          </div>
-          <div class="form-group">
-            <label>HR phone</label>
-            <input v-model="form.hr_contact" class="form-control" placeholder="9876543210" />
-          </div>
+          <input v-model="form.website" class="form-control" placeholder="https://…" />
         </div>
         <div class="form-group">
-          <label>Company description</label>
-          <textarea v-model="form.description" class="form-control" placeholder="Brief description of your company…"></textarea>
+          <label>Location</label>
+          <input v-model="form.location" class="form-control" />
         </div>
-        <button class="btn btn-primary btn-block" :disabled="loading" @click="submit">
-          {{ loading ? 'Submitting…' : 'Submit for approval' }}
+        <div class="form-group">
+          <label>Description</label>
+          <textarea v-model="form.description" class="form-control" rows="3"></textarea>
+        </div>
+        <button class="btn btn-primary btn-block" :disabled="loading" @click="register">
+          {{ loading ? 'Registering…' : 'Register Company' }}
         </button>
-        <div class="auth-footer">Already registered? <RouterLink to="/login">Sign in</RouterLink></div>
       </template>
+
+      <div class="auth-footer">
+        <RouterLink to="/login">Back to Login</RouterLink>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive } from 'vue'
-import { useAuthStore } from '@/store/auth'
+import { api } from '../main.js'
 
-const auth    = useAuthStore()
-const loading = ref(false)
 const error   = ref('')
-const success = ref(false)
-const industries = ['Fintech','SaaS','IT Services','Payments','E-commerce','Healthcare','EdTech','Analytics','Consulting','Other']
+const success = ref('')
+const loading = ref(false)
+const form = reactive({ name:'', email:'', password:'', industry:'', hr_name:'', hr_contact:'', website:'', location:'', description:'' })
 
-const form = reactive({
-  name: '', email: '', password: '', industry: '',
-  location: '', website: '', hr_name: '', hr_contact: '', description: '',
-})
-
-async function submit() {
+async function register() {
   error.value = ''
-  if (!form.name || !form.email || !form.password) { error.value = 'Company name, email and password are required'; return }
+  if (!form.name || !form.email || !form.password) { error.value = 'Name, email and password are required'; return }
   loading.value = true
   try {
-    await auth.registerCompany(form)
-    success.value = true
+    await api('/auth/register/company', { method: 'POST', body: JSON.stringify(form) })
+    success.value = 'Registration submitted! An admin will review and approve your account.'
   } catch (e) {
-    error.value = e.response?.data?.error || 'Registration failed'
+    error.value = e.message
   } finally {
     loading.value = false
   }
