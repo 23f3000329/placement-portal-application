@@ -1,22 +1,29 @@
 <template>
-  <div class="layout">
+  <div class="d-flex">
     <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="sidebar-logo">Placement<span>Portal</span></div>
+    <aside class="sidebar bg-dark border-end border-secondary">
+      <div class="sidebar-logo">
+        <i class="bi bi-mortarboard-fill text-success me-2"></i>Placement<span>Portal</span>
+      </div>
       <nav class="sidebar-nav">
-        <RouterLink to="/admin/dashboard"    class="nav-item" active-class="active"><span class="nav-icon">📊</span> Dashboard</RouterLink>
-        <RouterLink to="/admin/companies"    class="nav-item" active-class="active"><span class="nav-icon">🏢</span> Companies</RouterLink>
-        <RouterLink to="/admin/students"     class="nav-item" active-class="active"><span class="nav-icon">🎓</span> Students</RouterLink>
-        <RouterLink to="/admin/drives"       class="nav-item" active-class="active"><span class="nav-icon">📋</span> Drives</RouterLink>
-        <RouterLink to="/admin/applications" class="nav-item" active-class="active"><span class="nav-icon">📝</span> Applications</RouterLink>
+        <RouterLink to="/admin/dashboard"     class="nav-item-link"><i class="bi bi-speedometer2 me-2"></i>Dashboard</RouterLink>
+        <RouterLink to="/admin/companies"     class="nav-item-link"><i class="bi bi-building me-2"></i>Companies</RouterLink>
+        <RouterLink to="/admin/students"      class="nav-item-link"><i class="bi bi-people me-2"></i>Students</RouterLink>
+        <RouterLink to="/admin/drives"        class="nav-item-link"><i class="bi bi-briefcase me-2"></i>Drives</RouterLink>
+        <RouterLink to="/admin/applications"  class="nav-item-link"><i class="bi bi-file-earmark-text me-2"></i>Applications</RouterLink>
       </nav>
       <div class="sidebar-footer">
-        <div style="font-size:0.8rem;color:var(--text2);margin-bottom:8px">Admin</div>
-        <button class="btn btn-sm btn-block" @click="logout">Logout</button>
+        <div class="text-secondary small mb-2">
+          <i class="bi bi-shield-lock me-1"></i>Admin
+        </div>
+        <button class="btn btn-outline-danger btn-sm w-100" @click="logout">
+          <i class="bi bi-box-arrow-right me-1"></i>Logout
+        </button>
       </div>
     </aside>
-    <!-- Main -->
-    <div class="main-content">
+
+    <!-- Main content -->
+    <div class="main-content flex-grow-1">
       <RouterView />
     </div>
   </div>
@@ -25,8 +32,5 @@
 <script setup>
 import { useRouter } from 'vue-router'
 const router = useRouter()
-function logout() {
-  localStorage.clear()
-  router.push('/login')
-}
+function logout() { localStorage.clear(); router.push('/login') }
 </script>

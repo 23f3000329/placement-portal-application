@@ -1,36 +1,43 @@
 <template>
   <div class="page">
-    <h2 style="margin-bottom:20px">Students</h2>
-    <div class="search-bar">
-      <input v-model="query" placeholder="Search by name / roll / branch…" @input="load" />
+    <h4 class="mb-4 fw-semibold">Students</h4>
+
+    <div class="row g-2 mb-3">
+      <div class="col-md-5">
+        <input v-model="query" class="form-control" placeholder="Search by name / roll / branch…" @input="load" />
+      </div>
     </div>
 
-    <div v-if="loading" class="spinner"></div>
+    <div v-if="loading" class="spinner-center"><div class="spinner-border text-success"></div></div>
 
-    <div v-else-if="!students.length" class="empty-state card">
-      <div class="icon">🎓</div><p>No students found</p>
+    <div v-else-if="!students.length" class="text-center text-secondary py-5">
+      <i class="bi bi-people fs-1"></i><p class="mt-2">No students found</p>
     </div>
 
-    <div v-else class="table-wrap card" style="padding:0">
-      <table>
-        <thead>
+    <div v-else class="card p-0 overflow-hidden">
+      <table class="table table-hover mb-0">
+        <thead class="table-dark">
           <tr><th>Name</th><th>Roll No</th><th>Branch</th><th>CGPA</th><th>Year</th><th>Status</th><th>Actions</th></tr>
         </thead>
         <tbody>
           <tr v-for="s in students" :key="s.id">
-            <td>{{ s.name }}</td>
+            <td class="fw-semibold">{{ s.name }}</td>
             <td>{{ s.roll_number || '—' }}</td>
             <td>{{ s.branch || '—' }}</td>
             <td>{{ s.cgpa || '—' }}</td>
             <td>{{ s.year || '—' }}</td>
             <td>
-              <span v-if="s.is_blacklisted" class="badge badge-red">Blacklisted</span>
-              <span v-else-if="s.is_placed"   class="badge badge-green">Placed</span>
-              <span v-else                     class="badge badge-blue">Active</span>
+              <span v-if="s.is_blacklisted" class="badge bg-danger">Blacklisted</span>
+              <span v-else-if="s.is_placed"  class="badge bg-success">Placed</span>
+              <span v-else                   class="badge bg-primary">Active</span>
             </td>
             <td>
-              <button v-if="!s.is_blacklisted" class="btn btn-sm btn-danger"  @click="action(s.id,'blacklist')">Blacklist</button>
-              <button v-else                    class="btn btn-sm btn-success" @click="action(s.id,'activate')">Activate</button>
+              <button v-if="!s.is_blacklisted" class="btn btn-warning btn-sm" @click="action(s.id,'blacklist')">
+                <i class="bi bi-slash-circle me-1"></i>Blacklist
+              </button>
+              <button v-else class="btn btn-success btn-sm" @click="action(s.id,'activate')">
+                <i class="bi bi-arrow-counterclockwise me-1"></i>Activate
+              </button>
             </td>
           </tr>
         </tbody>
@@ -54,13 +61,13 @@ async function load() {
   try {
     const params = new URLSearchParams({ q: query.value })
     students.value = await api('/admin/students?' + params)
-  } catch(e) { alert(e.message) }
+  } catch (e) { alert(e.message) }
   finally { loading.value = false }
 }
 
 async function action(id, type) {
   if (!confirm(`${type} this student?`)) return
   try { await api(`/admin/students/${id}/${type}`, { method: 'PATCH' }); load() }
-  catch(e) { alert(e.message) }
+  catch (e) { alert(e.message) }
 }
 </script>

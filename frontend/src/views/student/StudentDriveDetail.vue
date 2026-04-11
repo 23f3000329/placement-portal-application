@@ -1,123 +1,133 @@
 <template>
   <div class="page">
-    <button class="btn btn-sm" style="margin-bottom:16px" @click="$router.back()">← Back</button>
+    <button class="btn btn-outline-secondary btn-sm mb-4" @click="$router.back()">
+      <i class="bi bi-arrow-left me-1"></i>Back
+    </button>
 
-    <div v-if="loading" class="spinner"></div>
+    <div v-if="loading" class="spinner-center">
+      <div class="spinner-border text-success"></div>
+    </div>
 
     <template v-else-if="drive">
-      <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start">
-        <!-- Left: details -->
-        <div>
-          <div class="card" style="margin-bottom:16px">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
-              <div>
-                <h2>{{ drive.title }}</h2>
-                <div style="color:var(--text2);margin-top:4px">
-                  {{ drive.company_name }} · {{ drive.company_industry }}
+      <div class="row g-4">
+
+        <!-- Left: drive details -->
+        <div class="col-lg-8">
+          <div class="card mb-3">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                  <h5 class="fw-semibold mb-1">{{ drive.title }}</h5>
+                  <div class="text-secondary">{{ drive.company_name }}</div>
                 </div>
+                <span :class="statusBadge(drive.status)">{{ drive.status }}</span>
               </div>
-              <StatusBadge :status="drive.status" />
-            </div>
 
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
-              <span class="pill">{{ drive.job_type }}</span>
-              <span class="pill">{{ drive.location || 'Remote' }}</span>
-              <span class="pill">{{ drive.interview_mode }}</span>
-              <span v-if="drive.salary_min" class="pill">
-                ₹{{ fmtSalary(drive.salary_min) }}
-                {{ drive.salary_max ? '– ₹' + fmtSalary(drive.salary_max) : '+' }} p.a.
-              </span>
-            </div>
-
-            <div style="margin-bottom:16px">
-              <div style="font-size:0.75rem;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">
-                Job Description
+              <div class="d-flex flex-wrap gap-2 mb-3">
+                <span class="badge bg-secondary">{{ drive.job_type }}</span>
+                <span class="badge bg-secondary">{{ drive.location || 'Remote' }}</span>
+                <span class="badge bg-secondary">{{ drive.interview_mode }}</span>
+                <span v-if="drive.salary_min" class="badge bg-secondary">
+                  ₹{{ fmtSalary(drive.salary_min) }}{{ drive.salary_max ? ' – ₹' + fmtSalary(drive.salary_max) : '+' }} p.a.
+                </span>
               </div>
-              <p style="font-size:0.9rem;line-height:1.7;white-space:pre-wrap">{{ drive.job_description || 'No description provided.' }}</p>
-            </div>
 
-            <div v-if="drive.skills_required" style="margin-bottom:16px">
-              <div style="font-size:0.75rem;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">
-                Skills Required
+              <div class="mb-3">
+                <div class="section-label">Job Description</div>
+                <p class="small lh-lg" style="white-space:pre-wrap">
+                  {{ drive.job_description || 'No description provided.' }}
+                </p>
               </div>
-              <div style="display:flex;gap:6px;flex-wrap:wrap">
-                <span v-for="s in drive.skills_required.split(',')" :key="s" class="pill">{{ s.trim() }}</span>
+
+              <div v-if="drive.skills_required">
+                <div class="section-label">Skills Required</div>
+                <div class="d-flex flex-wrap gap-1">
+                  <span v-for="s in drive.skills_required.split(',')" :key="s"
+                    class="badge bg-secondary">{{ s.trim() }}</span>
+                </div>
               </div>
             </div>
           </div>
 
           <!-- Eligibility criteria -->
           <div class="card">
-            <div class="card-header"><span class="card-title">Eligibility criteria</span></div>
-            <table style="font-size:0.88rem">
-              <tbody>
-                <tr>
-                  <td style="padding:8px 0;color:var(--text2);width:160px">Minimum CGPA</td>
-                  <td style="padding:8px 0;font-weight:600">{{ drive.min_cgpa || 'None' }}</td>
-                </tr>
-                <tr>
-                  <td style="padding:8px 0;color:var(--text2)">Eligible branches</td>
-                  <td style="padding:8px 0">
-                    <span v-if="!drive.eligible_branches?.length">All branches</span>
-                    <span v-for="b in drive.eligible_branches" :key="b" class="pill" style="margin:2px">{{ b }}</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding:8px 0;color:var(--text2)">Application deadline</td>
-                  <td style="padding:8px 0;font-weight:600" :style="isDeadlineSoon(drive.application_deadline) ? 'color:var(--red)' : ''">
-                    {{ fmtDate(drive.application_deadline) || 'Open' }}
-                    <span v-if="isDeadlineSoon(drive.application_deadline)"> ⚠ Closing soon</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <div class="card-header fw-semibold">Eligibility criteria</div>
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item d-flex justify-content-between">
+                <span class="text-secondary">Minimum CGPA</span>
+                <span class="fw-semibold">{{ drive.min_cgpa || 'None' }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span class="text-secondary">Eligible branches</span>
+                <span v-if="!drive.eligible_branches?.length">All branches</span>
+                <div v-else class="d-flex flex-wrap gap-1 justify-content-end">
+                  <span v-for="b in drive.eligible_branches" :key="b" class="badge bg-secondary">{{ b }}</span>
+                </div>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span class="text-secondary">Application deadline</span>
+                <span class="fw-semibold"
+                  :class="isDeadlineSoon(drive.application_deadline) ? 'text-danger' : ''">
+                  {{ fmtDate(drive.application_deadline) || 'Open' }}
+                  <span v-if="isDeadlineSoon(drive.application_deadline)">⚠ Closing soon</span>
+                </span>
+              </li>
+            </ul>
           </div>
         </div>
 
         <!-- Right: apply card -->
-        <div>
+        <div class="col-lg-4">
+
           <!-- Already applied -->
           <div v-if="drive.already_applied && drive.application" class="card">
-            <div class="card-header"><span class="card-title">Your application</span></div>
-            <div style="margin-bottom:14px">
-              <div style="font-size:0.78rem;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px">Status</div>
-              <StatusBadge :status="drive.application.status" />
-            </div>
-            <div v-if="drive.application.interview_date" style="margin-bottom:14px">
-              <div style="font-size:0.78rem;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px">Interview</div>
-              <div style="font-weight:600">{{ fmtDate(drive.application.interview_date) }}</div>
-            </div>
-            <div v-if="drive.application.company_feedback" style="margin-bottom:14px">
-              <div style="font-size:0.78rem;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px">Feedback</div>
-              <p style="font-size:0.88rem">{{ drive.application.company_feedback }}</p>
-            </div>
-            <div style="font-size:0.78rem;color:var(--text2)">
-              Applied {{ fmtDate(drive.application.applied_at) }}
+            <div class="card-header fw-semibold">Your application</div>
+            <div class="card-body">
+              <div class="mb-3">
+                <div class="section-label">Status</div>
+                <span :class="statusBadge(drive.application.status)">{{ drive.application.status }}</span>
+              </div>
+              <div v-if="drive.application.interview_date" class="mb-3">
+                <div class="section-label">Interview date</div>
+                <div class="fw-semibold">{{ fmtDate(drive.application.interview_date) }}</div>
+              </div>
+              <div v-if="drive.application.company_feedback" class="mb-3">
+                <div class="section-label">Feedback</div>
+                <p class="small mb-0">{{ drive.application.company_feedback }}</p>
+              </div>
+              <div class="text-secondary small">
+                Applied {{ fmtDate(drive.application.applied_at) }}
+              </div>
             </div>
           </div>
 
           <!-- Not yet applied -->
           <div v-else class="card">
-            <div class="card-header"><span class="card-title">Apply for this drive</span></div>
-            <div v-if="!drive.is_eligible" style="background:var(--red-bg);color:var(--red-text);padding:10px 12px;border-radius:var(--radius);margin-bottom:14px;font-size:0.85rem">
-              ✕ You don't meet the eligibility criteria for this drive.
-            </div>
-            <div v-else style="background:var(--green-bg);color:var(--green-text);padding:10px 12px;border-radius:var(--radius);margin-bottom:14px;font-size:0.85rem">
-              ✓ You meet the eligibility criteria
-            </div>
+            <div class="card-header fw-semibold">Apply for this drive</div>
+            <div class="card-body">
+              <div v-if="!drive.is_eligible" class="alert alert-danger py-2 small">
+                <i class="bi bi-x-circle me-1"></i>You don't meet the eligibility criteria.
+              </div>
+              <div v-else class="alert alert-success py-2 small">
+                <i class="bi bi-check-circle me-1"></i>You meet the eligibility criteria.
+              </div>
 
-            <div style="font-size:0.85rem;color:var(--text2);margin-bottom:16px">
-              Your profile (CGPA {{ profile?.cgpa }}, {{ profile?.branch }}) will be shared with {{ drive.company_name }}.
-            </div>
+              <p class="text-secondary small mb-3">
+                Your profile will be shared with {{ drive.company_name }}.
+              </p>
 
-            <button
-              class="btn btn-primary btn-block"
-              :disabled="!drive.is_eligible || applying"
-              @click="applyNow"
-            >
-              {{ applying ? 'Submitting…' : 'Apply now' }}
-            </button>
+              <div v-if="applyError"   class="alert alert-danger  py-2 small mb-2">{{ applyError }}</div>
+              <div v-if="applySuccess" class="alert alert-success py-2 small mb-2">{{ applySuccess }}</div>
+
+              <button class="btn btn-success w-100"
+                :disabled="!drive.is_eligible || applying"
+                @click="applyNow">
+                <span v-if="applying" class="spinner-border spinner-border-sm me-2"></span>
+                {{ applying ? 'Submitting…' : 'Apply now' }}
+              </button>
+            </div>
           </div>
+
         </div>
       </div>
     </template>
@@ -127,46 +137,50 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { studentAPI } from '@/services/api'
-import { useAuthStore } from '@/store/auth'
-import { useToastStore } from '@/store/toast'
-import StatusBadge from '@/components/common/StatusBadge.vue'
+import { api } from '../../main.js'
 
-const route   = useRoute()
-const router  = useRouter()
-const auth    = useAuthStore()
-const toast   = useToastStore()
-const drive   = ref(null)
-const loading = ref(false)
-const applying = ref(false)
-const profile  = auth.profile
+const route        = useRoute()
+const router       = useRouter()
+const drive        = ref(null)
+const loading      = ref(false)
+const applying     = ref(false)
+const applyError   = ref('')
+const applySuccess = ref('')
 
 onMounted(async () => {
   loading.value = true
-  try { const { data } = await studentAPI.getDrive(route.params.id); drive.value = data }
-  catch { toast.error('Drive not found'); router.push('/student/drives') }
+  try { drive.value = await api(`/student/drives/${route.params.id}`) }
+  catch (e) { alert('Drive not found'); router.push('/student/drives') }
   finally { loading.value = false }
 })
 
 async function applyNow() {
+  applyError.value = ''; applySuccess.value = ''
   applying.value = true
   try {
-    await studentAPI.applyDrive(drive.value.id)
-    toast.success('Application submitted successfully!')
-    const { data } = await studentAPI.getDrive(drive.value.id)
-    drive.value = data
-  } catch (e) {
-    toast.error(e.response?.data?.error || 'Application failed')
-  } finally { applying.value = false }
+    await api(`/student/apply/${drive.value.id}`, { method: 'POST' })
+    applySuccess.value = '✓ Application submitted successfully!'
+    drive.value = await api(`/student/drives/${drive.value.id}`)
+  } catch (e) { applyError.value = e.message }
+  finally { applying.value = false }
 }
 
 function isDeadlineSoon(d) { return d && (new Date(d) - new Date()) < 3 * 86400000 }
-function fmtSalary(v) {
-  if (!v) return ''
-  return v >= 100000 ? (v/100000).toFixed(1)+'L' : v.toLocaleString()
-}
-function fmtDate(d) {
-  if (!d) return ''
-  return new Date(d).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })
+function fmtSalary(v) { return v >= 100000 ? (v / 100000).toFixed(1) + 'L' : v?.toLocaleString() }
+function fmtDate(d) { return d ? new Date(d).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) : '' }
+function statusBadge(s) {
+  return {
+    approved:'badge bg-success', pending:'badge bg-warning text-dark',
+    rejected:'badge bg-danger',  closed:'badge bg-secondary',
+    applied:'badge bg-primary',  shortlisted:'badge bg-info text-dark',
+    interview:'badge bg-warning text-dark', selected:'badge bg-success'
+  }[s] || 'badge bg-secondary'
 }
 </script>
+
+<style scoped>
+.section-label {
+  font-size: 0.72rem; font-weight: 600; color: var(--bs-secondary-color);
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.4rem;
+}
+</style>

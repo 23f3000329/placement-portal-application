@@ -1,71 +1,56 @@
 <template>
   <div class="page">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
-      <button class="btn btn-sm" @click="$router.back()">← Back</button>
-      <h2>{{ drive?.title || 'Applicants' }}</h2>
-      <StatusBadge v-if="drive" :status="drive.status" />
+    <div class="d-flex align-items-center gap-3 mb-4">
+      <button class="btn btn-outline-secondary btn-sm" @click="$router.back()">
+        <i class="bi bi-arrow-left"></i> Back
+      </button>
+      <h4 class="mb-0 fw-semibold">{{ driveName || 'Applicants' }}</h4>
     </div>
 
-    <div v-if="drive" style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
-      <span class="pill">{{ drive.company_name }}</span>
-      <span class="pill">{{ drive.job_type }}</span>
-      <span class="pill">Min CGPA {{ drive.min_cgpa }}</span>
-      <span class="pill">{{ drive.applications_count }} applicant(s)</span>
+    <div class="row g-2 mb-3">
+      <div class="col-md-5">
+        <input v-model="query" class="form-control" placeholder="Search by name or branch…" />
+      </div>
+      <div class="col-md-3">
+        <select v-model="statusFilter" class="form-select">
+          <option value="">All statuses</option>
+          <option value="applied">Applied</option>
+          <option value="shortlisted">Shortlisted</option>
+          <option value="interview">Interview</option>
+          <option value="selected">Selected</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
     </div>
 
-    <!-- Filter -->
-    <div class="search-bar">
-      <input v-model="query" placeholder="Search by name or branch…" />
-      <select v-model="statusFilter">
-        <option value="">All statuses</option>
-        <option value="applied">Applied</option>
-        <option value="shortlisted">Shortlisted</option>
-        <option value="interview">Interview</option>
-        <option value="selected">Selected</option>
-        <option value="rejected">Rejected</option>
-      </select>
+    <div v-if="loading" class="spinner-center"><div class="spinner-border text-success"></div></div>
+
+    <div v-else-if="!filtered.length" class="text-center text-secondary py-5">
+      <i class="bi bi-file-person fs-1"></i><p class="mt-2">No applications match your filters</p>
     </div>
 
-    <div v-if="loading" class="spinner"></div>
-
-    <div v-else-if="!filtered.length" class="empty-state card">
-      <div class="icon">📄</div><p>No applications match your filters</p>
-    </div>
-
-    <div v-else class="card" style="padding:0;overflow:hidden">
-      <div class="table-wrap">
-        <table>
-          <thead>
+    <div v-else class="card p-0 overflow-hidden">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-dark">
             <tr>
-              <th>Student</th>
-              <th>Branch</th>
-              <th>CGPA</th>
-              <th>Applied</th>
-              <th>Interview</th>
-              <th>Status</th>
-              <th>Update status</th>
-              <th>Schedule interview</th>
-              <th>Feedback</th>
+              <th>Student</th><th>Branch</th><th>CGPA</th><th>Applied</th>
+              <th>Status</th><th>Update Status</th><th>Interview Date</th><th>Feedback</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="a in filtered" :key="a.id">
               <td>
-                <div style="font-weight:600">{{ a.student_name }}</div>
-                <small>{{ a.student_email }}</small>
+                <div class="fw-semibold">{{ a.student_name }}</div>
+                <small class="text-secondary">{{ a.student_email }}</small>
               </td>
               <td>{{ a.student_branch || '—' }}</td>
               <td>{{ a.student_cgpa ?? '—' }}</td>
               <td>{{ fmtDate(a.applied_at) }}</td>
-              <td>{{ a.interview_date ? fmtDate(a.interview_date) : '—' }}</td>
-              <td><StatusBadge :status="a.status" /></td>
+              <td><span :class="statusBadge(a.status)">{{ a.status }}</span></td>
               <td>
-                <select
-                  class="form-control"
-                  style="width:140px;padding:4px 8px;font-size:0.8rem"
-                  :value="a.status"
-                  @change="updateStatus(a, $event.target.value)"
-                >
+                <select class="form-select form-select-sm" style="width:140px"
+                  :value="a.status" @change="updateStatus(a, $event.target.value)">
                   <option value="applied">Applied</option>
                   <option value="shortlisted">Shortlisted</option>
                   <option value="interview">Interview</option>
@@ -74,23 +59,14 @@
                 </select>
               </td>
               <td>
-                <input
-                  type="date"
-                  class="form-control"
-                  style="width:150px;padding:4px 8px;font-size:0.8rem"
-                  :value="a.interview_date ? a.interview_date.split('T')[0] : ''"
-                  @change="updateInterview(a, $event.target.value)"
-                />
+                <input type="date" class="form-control form-control-sm" style="width:155px"
+                  :value="a.interview_date ? a.interview_date.slice(0,10) : ''"
+                  @change="updateInterview(a, $event.target.value)" />
               </td>
               <td>
-                <input
-                  type="text"
-                  class="form-control"
-                  style="width:180px;padding:4px 8px;font-size:0.8rem"
-                  :value="a.company_feedback || ''"
-                  placeholder="Add feedback…"
-                  @blur="updateFeedback(a, $event.target.value)"
-                />
+                <input type="text" class="form-control form-control-sm" style="width:180px"
+                  :value="a.company_feedback || ''" placeholder="Add feedback…"
+                  @blur="updateFeedback(a, $event.target.value)" />
               </td>
             </tr>
           </tbody>
@@ -103,29 +79,27 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { companyAPI, adminAPI } from '@/services/api'
-import { useToastStore } from '@/store/toast'
-import StatusBadge from '@/components/common/StatusBadge.vue'
+import { api } from '../../main.js'
 
 const route        = useRoute()
-const toast        = useToastStore()
+const driveId      = Number(route.params.id)
 const applications = ref([])
-const drive        = ref(null)
+const driveName    = ref('')
 const loading      = ref(false)
 const query        = ref('')
 const statusFilter = ref('')
-const driveId      = +route.params.id
 
 onMounted(async () => {
   loading.value = true
   try {
-    const [aRes, dRes] = await Promise.all([
-      companyAPI.getDriveApps(driveId),
-      companyAPI.getDrives(),
+    const [apps, drives] = await Promise.all([
+      api(`/company/drives/${driveId}/applications`),
+      api('/company/drives'),
     ])
-    applications.value = aRes.data
-    drive.value = dRes.data.find(d => d.id === driveId)
-  } catch { toast.error('Failed to load applicants') }
+    applications.value = apps
+    const drive = drives.find(d => d.id === driveId)
+    if (drive) driveName.value = drive.title
+  } catch (e) { alert('Failed to load applicants: ' + e.message) }
   finally { loading.value = false }
 })
 
@@ -134,43 +108,28 @@ const filtered = computed(() => {
   if (statusFilter.value) list = list.filter(a => a.status === statusFilter.value)
   if (query.value) {
     const q = query.value.toLowerCase()
-    list = list.filter(a =>
-      a.student_name?.toLowerCase().includes(q) ||
-      a.student_branch?.toLowerCase().includes(q)
-    )
+    list = list.filter(a => a.student_name?.toLowerCase().includes(q) || a.student_branch?.toLowerCase().includes(q))
   }
   return list
 })
 
-async function updateStatus(app, status) {
-  try {
-    const { data } = await companyAPI.updateApplication(app.id, { status })
-    Object.assign(app, data)
-    toast.success(`Status updated to ${status}`)
-  } catch { toast.error('Update failed') }
+async function updateStatus(app, newStatus) {
+  try { Object.assign(app, await api(`/company/applications/${app.id}`, { method:'PATCH', body: JSON.stringify({ status: newStatus }) })) }
+  catch (e) { alert('Update failed: ' + e.message) }
 }
-
-async function updateInterview(app, date) {
-  if (!date) return
-  try {
-    const { data } = await companyAPI.updateApplication(app.id, {
-      interview_date: new Date(date).toISOString()
-    })
-    Object.assign(app, data)
-    toast.success('Interview date set')
-  } catch { toast.error('Update failed') }
+async function updateInterview(app, dateStr) {
+  if (!dateStr) return
+  try { Object.assign(app, await api(`/company/applications/${app.id}`, { method:'PATCH', body: JSON.stringify({ interview_date: new Date(dateStr).toISOString() }) })) }
+  catch (e) { alert('Update failed: ' + e.message) }
 }
-
 async function updateFeedback(app, feedback) {
   if (feedback === (app.company_feedback || '')) return
-  try {
-    const { data } = await companyAPI.updateApplication(app.id, { company_feedback: feedback })
-    Object.assign(app, data)
-  } catch { toast.error('Update failed') }
+  try { Object.assign(app, await api(`/company/applications/${app.id}`, { method:'PATCH', body: JSON.stringify({ company_feedback: feedback }) })) }
+  catch (e) { alert('Update failed: ' + e.message) }
 }
 
-function fmtDate(d) {
-  if (!d) return '—'
-  return new Date(d).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })
+function statusBadge(s) {
+  return { applied:'badge bg-primary', shortlisted:'badge bg-info text-dark', interview:'badge bg-warning text-dark', selected:'badge bg-success', rejected:'badge bg-danger' }[s] || 'badge bg-secondary'
 }
+function fmtDate(d) { return d ? new Date(d).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) : '—' }
 </script>

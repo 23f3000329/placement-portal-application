@@ -1,54 +1,65 @@
 <template>
   <div class="page">
-    <h2 style="margin-bottom:20px">Companies</h2>
+    <h4 class="mb-4 fw-semibold">Companies</h4>
 
     <!-- Search & filter -->
-    <div class="search-bar">
-      <input v-model="query" placeholder="Search by name…" @input="load" />
-      <select v-model="statusFilter" @change="load">
-        <option value="all">All statuses</option>
-        <option value="pending">Pending</option>
-        <option value="approved">Approved</option>
-        <option value="rejected">Rejected</option>
-      </select>
+    <div class="row g-2 mb-3">
+      <div class="col-md-6">
+        <input v-model="query" class="form-control" placeholder="Search by name…" @input="load" />
+      </div>
+      <div class="col-md-3">
+        <select v-model="statusFilter" class="form-select" @change="load">
+          <option value="all">All statuses</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
     </div>
 
-    <div v-if="loading" class="spinner"></div>
+    <div v-if="loading" class="spinner-center"><div class="spinner-border text-success"></div></div>
 
-    <div v-else-if="!companies.length" class="empty-state card">
-      <div class="icon">🏢</div><p>No companies found</p>
+    <div v-else-if="!companies.length" class="text-center text-secondary py-5">
+      <i class="bi bi-building fs-1"></i><p class="mt-2">No companies found</p>
     </div>
 
-    <div v-else class="table-wrap card" style="padding:0">
-      <table>
-        <thead>
+    <div v-else class="card p-0 overflow-hidden">
+      <table class="table table-hover mb-0">
+        <thead class="table-dark">
           <tr>
-            <th>Company</th><th>Industry</th><th>HR Contact</th>
-            <th>Status</th><th>Actions</th>
+            <th>Company</th><th>Industry</th><th>HR Contact</th><th>Status</th><th>Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="c in companies" :key="c.id">
             <td>
-              <div style="font-weight:600">{{ c.name }}</div>
-              <small>{{ c.website }}</small>
+              <div class="fw-semibold">{{ c.name }}</div>
+              <small class="text-secondary">{{ c.website }}</small>
             </td>
             <td>{{ c.industry || '—' }}</td>
             <td>{{ c.hr_contact || '—' }}</td>
             <td>
               <span :class="statusBadge(c.approval_status)">{{ c.approval_status }}</span>
-              <span v-if="c.is_blacklisted" class="badge badge-red" style="margin-left:4px">blacklisted</span>
+              <span v-if="c.is_blacklisted" class="badge bg-danger ms-1">blacklisted</span>
             </td>
             <td>
-              <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <div class="d-flex gap-1 flex-wrap">
                 <button v-if="c.approval_status === 'pending'"
-                  class="btn btn-sm btn-success" @click="action(c.id,'approve')">Approve</button>
+                  class="btn btn-success btn-sm" @click="action(c.id,'approve')">
+                  <i class="bi bi-check2"></i> Approve
+                </button>
                 <button v-if="c.approval_status === 'pending'"
-                  class="btn btn-sm btn-danger"  @click="action(c.id,'reject')">Reject</button>
+                  class="btn btn-danger btn-sm" @click="action(c.id,'reject')">
+                  <i class="bi bi-x"></i> Reject
+                </button>
                 <button v-if="!c.is_blacklisted && c.approval_status === 'approved'"
-                  class="btn btn-sm btn-danger"  @click="action(c.id,'blacklist')">Blacklist</button>
+                  class="btn btn-warning btn-sm" @click="action(c.id,'blacklist')">
+                  <i class="bi bi-slash-circle"></i> Blacklist
+                </button>
                 <button v-if="c.is_blacklisted"
-                  class="btn btn-sm btn-success" @click="action(c.id,'activate')">Activate</button>
+                  class="btn btn-success btn-sm" @click="action(c.id,'activate')">
+                  <i class="bi bi-arrow-counterclockwise"></i> Activate
+                </button>
               </div>
             </td>
           </tr>
@@ -74,24 +85,17 @@ async function load() {
   try {
     const params = new URLSearchParams({ q: query.value, status: statusFilter.value })
     companies.value = await api('/admin/companies?' + params)
-  } catch (e) {
-    alert(e.message)
-  } finally {
-    loading.value = false
-  }
+  } catch (e) { alert(e.message) }
+  finally { loading.value = false }
 }
 
 async function action(id, type) {
-  if (!confirm(`Are you sure you want to ${type} this company?`)) return
-  try {
-    await api(`/admin/companies/${id}/${type}`, { method: 'PATCH' })
-    load()
-  } catch (e) {
-    alert(e.message)
-  }
+  if (!confirm(`${type} this company?`)) return
+  try { await api(`/admin/companies/${id}/${type}`, { method: 'PATCH' }); load() }
+  catch (e) { alert(e.message) }
 }
 
 function statusBadge(s) {
-  return { pending:'badge badge-amber', approved:'badge badge-green', rejected:'badge badge-red' }[s] || 'badge badge-gray'
+  return { pending:'badge bg-warning text-dark', approved:'badge bg-success', rejected:'badge bg-danger' }[s] || 'badge bg-secondary'
 }
 </script>

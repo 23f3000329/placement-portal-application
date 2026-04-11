@@ -1,114 +1,125 @@
 <template>
   <div class="page">
-    <h2 style="margin-bottom:20px">My Profile</h2>
+    <h4 class="mb-4 fw-semibold">My Profile</h4>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
-      <!-- Edit form -->
-      <div class="card">
-        <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)">
-          <div class="avatar avatar-lg" style="background:var(--teal-bg);color:var(--teal-text)">
-            {{ initials(form.name) }}
-          </div>
-          <div>
-            <div style="font-size:1rem;font-weight:600">{{ form.name || '—' }}</div>
-            <div style="font-size:0.82rem;color:var(--text2)">{{ auth.user?.email }}</div>
-            <span v-if="auth.profile?.is_placed" class="badge badge-green" style="margin-top:4px">Placed ✓</span>
-          </div>
-        </div>
+    <div v-if="loading" class="spinner-center">
+      <div class="spinner-border text-success"></div>
+    </div>
 
-        <div v-if="saved" style="background:var(--green-bg);color:var(--green-text);padding:10px 12px;border-radius:var(--radius);margin-bottom:14px;font-size:0.88rem">
-          ✓ Profile updated
-        </div>
+    <div v-else class="row g-4">
 
-        <div class="form-grid-2">
-          <div class="form-group">
-            <label>Full name *</label>
-            <input v-model="form.name" class="form-control" />
-          </div>
-          <div class="form-group">
-            <label>Roll number</label>
-            <input v-model="form.roll_number" class="form-control" />
+      <!-- Left: edit form -->
+      <div class="col-lg-7">
+        <div class="card">
+          <div class="card-header fw-semibold">Personal details</div>
+          <div class="card-body">
+            <div v-if="saved"  class="alert alert-success py-2">✓ Profile updated</div>
+            <div v-if="error"  class="alert alert-danger  py-2">{{ error }}</div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label">Full Name *</label>
+                <input v-model="form.name" class="form-control" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Roll Number</label>
+                <input v-model="form.roll_number" class="form-control" />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Branch</label>
+                <select v-model="form.branch" class="form-select">
+                  <option value="">Select</option>
+                  <option v-for="b in branches" :key="b">{{ b }}</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Year</label>
+                <select v-model="form.year" class="form-select">
+                  <option value="">Select</option>
+                  <option v-for="y in [1,2,3,4]" :key="y" :value="y">Year {{ y }}</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">CGPA</label>
+                <input v-model.number="form.cgpa" type="number" step="0.01" min="0" max="10"
+                  class="form-control" placeholder="8.5" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Phone</label>
+                <input v-model="form.phone" class="form-control" placeholder="9876543210" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Skills <small class="text-secondary">(comma-separated)</small></label>
+                <input v-model="form.skills" class="form-control" placeholder="Python, React, SQL" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">LinkedIn</label>
+                <input v-model="form.linkedin" class="form-control" placeholder="linkedin.com/in/…" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">GitHub</label>
+                <input v-model="form.github" class="form-control" placeholder="github.com/…" />
+              </div>
+            </div>
+
+            <button class="btn btn-success" :disabled="saving" @click="saveProfile">
+              <span v-if="saving" class="spinner-border spinner-border-sm me-2"></span>
+              {{ saving ? 'Saving…' : 'Save changes' }}
+            </button>
           </div>
         </div>
-        <div class="form-grid-3">
-          <div class="form-group">
-            <label>Branch</label>
-            <select v-model="form.branch" class="form-control">
-              <option value="">Select</option>
-              <option v-for="b in branches" :key="b">{{ b }}</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Year</label>
-            <select v-model="form.year" class="form-control">
-              <option value="">Select</option>
-              <option v-for="y in [1,2,3,4]" :key="y" :value="y">{{ y }}</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>CGPA</label>
-            <input v-model="form.cgpa" type="number" step="0.01" min="0" max="10" class="form-control" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Phone</label>
-          <input v-model="form.phone" class="form-control" placeholder="9876543210" />
-        </div>
-        <div class="form-group">
-          <label>Skills (comma-separated)</label>
-          <input v-model="form.skills" class="form-control" placeholder="Python, React, SQL, ML" />
-        </div>
-        <div class="form-grid-2">
-          <div class="form-group">
-            <label>LinkedIn</label>
-            <input v-model="form.linkedin" class="form-control" placeholder="linkedin.com/in/…" />
-          </div>
-          <div class="form-group">
-            <label>GitHub</label>
-            <input v-model="form.github" class="form-control" placeholder="github.com/…" />
-          </div>
-        </div>
-        <button class="btn btn-primary" :disabled="saving" @click="saveProfile">
-          {{ saving ? 'Saving…' : 'Save changes' }}
-        </button>
       </div>
 
-      <!-- Resume upload -->
-      <div>
-        <div class="card" style="margin-bottom:16px">
-          <div class="card-header"><span class="card-title">Resume</span></div>
-          <div v-if="auth.profile?.resume_path" style="background:var(--green-bg);color:var(--green-text);padding:10px 12px;border-radius:var(--radius);margin-bottom:12px;font-size:0.85rem">
-            ✓ Resume uploaded: {{ auth.profile.resume_path }}
+      <!-- Right: resume + skills -->
+      <div class="col-lg-5">
+
+        <!-- Resume upload -->
+        <div class="card mb-3">
+          <div class="card-header fw-semibold">Resume</div>
+          <div class="card-body">
+            <div v-if="resumePath" class="alert alert-success py-2 small mb-3">
+              <i class="bi bi-file-earmark-check me-1"></i>Resume on file
+            </div>
+            <div v-else class="alert alert-warning py-2 small mb-3">
+              <i class="bi bi-exclamation-triangle me-1"></i>No resume uploaded yet
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small">Upload resume <span class="text-secondary">(PDF, DOC, DOCX — max 5 MB)</span></label>
+              <input type="file" accept=".pdf,.doc,.docx" class="form-control form-control-sm" @change="handleFile" />
+            </div>
+
+            <div v-if="uploadError"   class="alert alert-danger  py-2 small mb-2">{{ uploadError }}</div>
+            <div v-if="uploadSuccess" class="alert alert-success py-2 small mb-2">{{ uploadSuccess }}</div>
+
+            <button class="btn btn-success btn-sm" :disabled="!resumeFile || uploading" @click="uploadResume">
+              <span v-if="uploading" class="spinner-border spinner-border-sm me-2"></span>
+              {{ uploading ? 'Uploading…' : 'Upload resume' }}
+            </button>
           </div>
-          <div v-else style="background:var(--amber-bg);color:var(--amber-text);padding:10px 12px;border-radius:var(--radius);margin-bottom:12px;font-size:0.85rem">
-            ⚠ No resume uploaded yet
-          </div>
-          <div class="form-group">
-            <label>Upload resume (PDF, DOC, DOCX — max 5 MB)</label>
-            <input type="file" accept=".pdf,.doc,.docx" class="form-control" @change="handleFile" />
-          </div>
-          <button class="btn btn-primary btn-sm" :disabled="!resumeFile || uploading" @click="uploadResume">
-            {{ uploading ? 'Uploading…' : 'Upload' }}
-          </button>
         </div>
 
-        <!-- Skills display -->
+        <!-- Skills tags + completeness -->
         <div class="card">
-          <div class="card-header"><span class="card-title">Skills</span></div>
-          <div v-if="!form.skills" style="color:var(--text3);font-size:0.88rem">No skills added yet</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <span v-for="s in skillList" :key="s" class="pill" style="background:var(--green-bg);color:var(--green-text);border-color:#9FE1CB">
-              {{ s }}
-            </span>
-          </div>
-          <div style="margin-top:16px">
-            <div style="font-size:0.78rem;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Profile completeness</div>
-            <div class="progress-wrap">
-              <div class="progress-bar" :style="`width:${completeness}%;background:var(--green)`"></div>
+          <div class="card-header fw-semibold">Skills & completeness</div>
+          <div class="card-body">
+            <div v-if="!skillList.length" class="text-secondary small mb-3">
+              Add skills in the form on the left
             </div>
-            <div style="font-size:0.78rem;color:var(--text2);margin-top:4px">{{ completeness }}% complete</div>
+            <div v-else class="d-flex flex-wrap gap-1 mb-3">
+              <span v-for="s in skillList" :key="s" class="badge bg-success bg-opacity-75">{{ s }}</span>
+            </div>
+
+            <div class="section-label">Profile completeness — {{ completeness }}%</div>
+            <div class="progress progress-thin">
+              <div class="progress-bar bg-success" :style="`width:${completeness}%`"></div>
+            </div>
+            <div class="text-secondary small mt-1">
+              Fill all fields and upload a resume to reach 100%
+            </div>
           </div>
         </div>
+
       </div>
     </div>
   </div>
@@ -116,17 +127,19 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { studentAPI } from '@/services/api'
-import { useAuthStore } from '@/store/auth'
-import { useToastStore } from '@/store/toast'
+import { api, apiUpload } from '../../main.js'
 
-const auth       = useAuthStore()
-const toast      = useToastStore()
-const saving     = ref(false)
-const saved      = ref(false)
-const uploading  = ref(false)
-const resumeFile = ref(null)
-const branches   = ['CSE','ECE','IT','DS','ME','EEE','Civil','Chemical']
+const loading       = ref(true)
+const saving        = ref(false)
+const saved         = ref(false)
+const error         = ref('')
+const uploading     = ref(false)
+const resumeFile    = ref(null)
+const resumePath    = ref('')
+const uploadError   = ref('')
+const uploadSuccess = ref('')
+
+const branches = ['CSE','ECE','IT','DS','ME','EEE','Civil','Chemical']
 
 const form = reactive({
   name:'', roll_number:'', branch:'', year:'', cgpa:'',
@@ -135,36 +148,38 @@ const form = reactive({
 
 onMounted(async () => {
   try {
-    const { data } = await studentAPI.getProfile()
-    Object.assign(form, { ...data, year: data.year || '', cgpa: data.cgpa || '' })
-  } catch { toast.error('Failed to load profile') }
+    const data = await api('/student/profile')
+    Object.assign(form, data)
+    resumePath.value = data.resume_path || ''
+  } catch (e) { error.value = 'Failed to load profile: ' + e.message }
+  finally { loading.value = false }
 })
-
-function initials(n) { return n?.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2) || 'ST' }
 
 const skillList = computed(() =>
   form.skills ? form.skills.split(',').map(s => s.trim()).filter(Boolean) : []
 )
 
 const completeness = computed(() => {
-  const fields = ['name','roll_number','branch','year','cgpa','phone','skills','linkedin','github']
-  const filled = fields.filter(f => form[f]).length
-  const hasResume = auth.profile?.resume_path ? 1 : 0
+  const fields  = ['name','roll_number','branch','year','cgpa','phone','skills','linkedin','github']
+  const filled  = fields.filter(f => form[f]).length
+  const hasResume = resumePath.value ? 1 : 0
   return Math.round(((filled + hasResume) / (fields.length + 1)) * 100)
 })
 
 async function saveProfile() {
-  if (!form.name) { toast.error('Name is required'); return }
+  error.value = ''
+  if (!form.name) { error.value = 'Name is required'; return }
   saving.value = true
   try {
-    await studentAPI.updateProfile({
-      ...form, year: form.year ? +form.year : null, cgpa: form.cgpa ? +form.cgpa : null
+    const updated = await api('/student/profile', {
+      method: 'PUT',
+      body: JSON.stringify({ ...form, year: form.year ? Number(form.year) : null, cgpa: form.cgpa ? Number(form.cgpa) : null })
     })
-    await auth.refreshMe()
+    Object.assign(form, updated)
+    localStorage.setItem('profile', JSON.stringify(updated))
     saved.value = true
     setTimeout(() => { saved.value = false }, 3000)
-    toast.success('Profile updated')
-  } catch { toast.error('Failed to save profile') }
+  } catch (e) { error.value = e.message }
   finally { saving.value = false }
 }
 
@@ -172,15 +187,23 @@ function handleFile(e) { resumeFile.value = e.target.files[0] }
 
 async function uploadResume() {
   if (!resumeFile.value) return
+  uploadError.value = ''; uploadSuccess.value = ''
   uploading.value = true
   try {
     const fd = new FormData()
     fd.append('resume', resumeFile.value)
-    await studentAPI.uploadResume(fd)
-    await auth.refreshMe()
-    toast.success('Resume uploaded successfully')
-  } catch (e) {
-    toast.error(e.response?.data?.error || 'Upload failed')
-  } finally { uploading.value = false }
+    const data = await apiUpload('/student/profile/resume', fd)
+    resumePath.value    = data.filename || 'uploaded'
+    uploadSuccess.value = '✓ Resume uploaded successfully'
+    resumeFile.value    = null
+  } catch (e) { uploadError.value = e.message }
+  finally { uploading.value = false }
 }
 </script>
+
+<style scoped>
+.section-label {
+  font-size: 0.72rem; font-weight: 600; color: var(--bs-secondary-color);
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.4rem;
+}
+</style>

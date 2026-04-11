@@ -1,51 +1,53 @@
 <template>
-  <div class="auth-page">
-    <div class="auth-card card">
+  <div class="auth-page py-4">
+    <div class="auth-card">
       <div class="auth-logo">Student <span>Register</span></div>
-      <div v-if="error" class="error-msg">{{ error }}</div>
+      <div class="card p-4">
+        <div v-if="error" class="alert alert-danger py-2">{{ error }}</div>
 
-      <div class="form-grid-2">
-        <div class="form-group">
-          <label>Full Name *</label>
-          <input v-model="form.name" class="form-control" />
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="form-label">Full Name *</label>
+            <input v-model="form.name" class="form-control" />
+          </div>
+          <div class="col-6">
+            <label class="form-label">Roll Number</label>
+            <input v-model="form.roll_number" class="form-control" />
+          </div>
+          <div class="col-12">
+            <label class="form-label">Email *</label>
+            <input v-model="form.email" type="email" class="form-control" />
+          </div>
+          <div class="col-12">
+            <label class="form-label">Password *</label>
+            <input v-model="form.password" type="password" class="form-control" />
+          </div>
+          <div class="col-4">
+            <label class="form-label">Branch</label>
+            <input v-model="form.branch" class="form-control" placeholder="CSE" />
+          </div>
+          <div class="col-4">
+            <label class="form-label">Year</label>
+            <input v-model.number="form.year" type="number" class="form-control" placeholder="3" />
+          </div>
+          <div class="col-4">
+            <label class="form-label">CGPA</label>
+            <input v-model.number="form.cgpa" type="number" step="0.1" class="form-control" placeholder="8.5" />
+          </div>
+          <div class="col-12">
+            <label class="form-label">Phone</label>
+            <input v-model="form.phone" class="form-control" />
+          </div>
         </div>
-        <div class="form-group">
-          <label>Roll Number</label>
-          <input v-model="form.roll_number" class="form-control" />
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Email *</label>
-        <input v-model="form.email" type="email" class="form-control" />
-      </div>
-      <div class="form-group">
-        <label>Password *</label>
-        <input v-model="form.password" type="password" class="form-control" />
-      </div>
-      <div class="form-grid-3">
-        <div class="form-group">
-          <label>Branch</label>
-          <input v-model="form.branch" class="form-control" placeholder="CSE" />
-        </div>
-        <div class="form-group">
-          <label>Year</label>
-          <input v-model.number="form.year" type="number" class="form-control" placeholder="3" />
-        </div>
-        <div class="form-group">
-          <label>CGPA</label>
-          <input v-model.number="form.cgpa" type="number" step="0.1" class="form-control" placeholder="8.5" />
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Phone</label>
-        <input v-model="form.phone" class="form-control" />
-      </div>
 
-      <button class="btn btn-primary btn-block" :disabled="loading" @click="register">
-        {{ loading ? 'Registering…' : 'Register' }}
-      </button>
-      <div class="auth-footer">
-        Already have an account? <RouterLink to="/login">Login</RouterLink>
+        <button class="btn btn-success w-100 mt-4" :disabled="loading" @click="register">
+          <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
+          {{ loading ? 'Registering…' : 'Register' }}
+        </button>
+
+        <div class="text-center mt-3 small text-secondary">
+          Already have an account? <RouterLink to="/login" class="text-success">Login</RouterLink>
+        </div>
       </div>
     </div>
   </div>
@@ -59,7 +61,7 @@ import { api } from '../main.js'
 const router  = useRouter()
 const error   = ref('')
 const loading = ref(false)
-const form = reactive({ name:'', email:'', password:'', roll_number:'', branch:'', year:'', cgpa:'', phone:'' })
+const form    = reactive({ name:'', email:'', password:'', roll_number:'', branch:'', year:'', cgpa:'', phone:'' })
 
 async function register() {
   error.value = ''

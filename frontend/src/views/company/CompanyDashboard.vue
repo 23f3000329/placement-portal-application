@@ -1,106 +1,79 @@
 <template>
   <div class="page">
-    <h2 style="margin-bottom:20px">Dashboard</h2>
+    <h4 class="mb-4 fw-semibold">Dashboard</h4>
 
-    <div class="stats-grid" v-if="stats">
-      <div class="stat-card">
-        <div class="stat-num" style="color:var(--blue)">{{ stats.total_drives }}</div>
-        <div class="stat-label">Total Drives</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" style="color:var(--green)">{{ stats.total_applicants }}</div>
-        <div class="stat-label">Applicants</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" style="color:var(--amber)">{{ stats.shortlisted }}</div>
-        <div class="stat-label">Shortlisted</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" style="color:#993556">{{ stats.selected }}</div>
-        <div class="stat-label">Selected</div>
-      </div>
-    </div>
+    <div v-if="loading" class="spinner-center"><div class="spinner-border text-success"></div></div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-      <!-- Chart -->
-      <div class="card">
-        <div class="card-header"><span class="card-title">Application funnel</span></div>
-        <canvas ref="funnelChart" style="max-height:220px"></canvas>
-        <div v-if="!stats" class="empty-state" style="padding:20px">
-          <div class="spinner"></div>
+    <template v-else>
+      <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+          <div class="card text-center p-3">
+            <div class="stat-num text-primary">{{ stats.total_drives }}</div>
+            <div class="stat-label">Total Drives</div>
+          </div>
         </div>
-      </div>
-
-      <!-- Recent drives -->
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">Recent drives</span>
-          <RouterLink to="/company/drives" class="btn btn-sm">View all →</RouterLink>
+        <div class="col-sm-6 col-xl-3">
+          <div class="card text-center p-3">
+            <div class="stat-num text-success">{{ stats.total_applicants }}</div>
+            <div class="stat-label">Applicants</div>
+          </div>
         </div>
-        <div v-if="!drives.length" class="empty-state" style="padding:20px">
-          <p>No drives yet</p>
+        <div class="col-sm-6 col-xl-3">
+          <div class="card text-center p-3">
+            <div class="stat-num text-warning">{{ stats.shortlisted }}</div>
+            <div class="stat-label">Shortlisted</div>
+          </div>
         </div>
-        <div v-for="d in drives.slice(0,4)" :key="d.id" style="padding:10px 0;border-bottom:1px solid var(--border)">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div>
-              <div style="font-weight:600;font-size:0.9rem">{{ d.title }}</div>
-              <small>{{ d.applications_count }} applicants · {{ fmtDate(d.application_deadline) }}</small>
-            </div>
-            <StatusBadge :status="d.status" />
+        <div class="col-sm-6 col-xl-3">
+          <div class="card text-center p-3">
+            <div class="stat-num text-info">{{ stats.selected }}</div>
+            <div class="stat-label">Selected</div>
           </div>
         </div>
       </div>
-    </div>
+
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span class="fw-semibold">Recent drives</span>
+          <RouterLink to="/company/drives" class="btn btn-outline-success btn-sm">View all →</RouterLink>
+        </div>
+        <div v-if="!drives.length" class="text-center text-secondary py-4">
+          <p>No drives yet. <RouterLink to="/company/drives" class="text-success">Create one →</RouterLink></p>
+        </div>
+        <ul v-else class="list-group list-group-flush">
+          <li v-for="d in drives.slice(0,5)" :key="d.id"
+            class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <div class="fw-semibold">{{ d.title }}</div>
+              <small class="text-secondary">{{ d.applications_count }} applicants · Deadline: {{ fmtDate(d.application_deadline) }}</small>
+            </div>
+            <span :class="statusBadge(d.status)">{{ d.status }}</span>
+          </li>
+        </ul>
+      </div>
+    </template>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
-import { Chart, BarElement, CategoryScale, LinearScale, Tooltip, Legend, BarController } from 'chart.js'
-import { companyAPI } from '@/services/api'
-import { useToastStore } from '@/store/toast'
-import StatusBadge from '@/components/common/StatusBadge.vue'
+import { ref, onMounted } from 'vue'
+import { api } from '../../main.js'
 
-Chart.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend, BarController)
-
-const toast       = useToastStore()
-const stats       = ref(null)
-const drives      = ref([])
-const funnelChart = ref(null)
+const loading = ref(true)
+const stats   = ref({ total_drives:0, total_applicants:0, shortlisted:0, selected:0 })
+const drives  = ref([])
 
 onMounted(async () => {
   try {
-    const [sRes, dRes] = await Promise.all([companyAPI.getStats(), companyAPI.getDrives()])
-    stats.value  = sRes.data
-    drives.value = dRes.data
-    await nextTick()
-    buildChart()
-  } catch { toast.error('Failed to load dashboard') }
+    const [statsData, drivesData] = await Promise.all([api('/company/stats'), api('/company/drives')])
+    stats.value  = statsData
+    drives.value = drivesData
+  } catch (e) { alert('Failed to load dashboard: ' + e.message) }
+  finally { loading.value = false }
 })
 
-function buildChart() {
-  if (!funnelChart.value || !stats.value) return
-  new Chart(funnelChart.value, {
-    type: 'bar',
-    data: {
-      labels: ['Applicants', 'Shortlisted', 'Interview', 'Selected'],
-      datasets: [{
-        data: [
-          stats.value.total_applicants,
-          stats.value.shortlisted,
-          stats.value.shortlisted,
-          stats.value.selected,
-        ],
-        backgroundColor: ['#B5D4F4','#9FE1CB','#FAC775','#1D9E75'],
-        borderRadius: 4,
-      }]
-    },
-    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
-  })
+function statusBadge(s) {
+  return { pending:'badge bg-warning text-dark', approved:'badge bg-success', rejected:'badge bg-danger', closed:'badge bg-secondary' }[s] || 'badge bg-secondary'
 }
-
-function fmtDate(d) {
-  if (!d) return '—'
-  return new Date(d).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })
-}
+function fmtDate(d) { return d ? new Date(d).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) : '—' }
 </script>

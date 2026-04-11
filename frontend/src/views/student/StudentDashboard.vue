@@ -1,129 +1,141 @@
 <template>
   <div class="page">
-    <h2 style="margin-bottom:20px">Dashboard</h2>
+    <h4 class="mb-4 fw-semibold">Dashboard</h4>
 
-    <!-- Stats -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-num" style="color:var(--blue)">{{ apps.length }}</div>
-        <div class="stat-label">Applied</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" style="color:var(--amber)">{{ countStatus('shortlisted') }}</div>
-        <div class="stat-label">Shortlisted</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" style="color:var(--blue)">{{ countStatus('interview') }}</div>
-        <div class="stat-label">Interviews</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" style="color:var(--green)">{{ countStatus('selected') }}</div>
-        <div class="stat-label">Selected</div>
-      </div>
-    </div>
+    <div v-if="loading" class="spinner-center"><div class="spinner-border text-success"></div></div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-      <!-- Upcoming interviews -->
-      <div class="card">
-        <div class="card-header"><span class="card-title">Upcoming interviews</span></div>
-        <div v-if="!upcomingInterviews.length" class="empty-state" style="padding:20px">
-          <p>No interviews scheduled</p>
+    <template v-else>
+      <!-- Stats -->
+      <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+          <div class="card text-center p-3">
+            <div class="stat-num text-primary">{{ apps.length }}</div>
+            <div class="stat-label">Applied</div>
+          </div>
         </div>
-        <div v-for="a in upcomingInterviews" :key="a.id" class="notif-item">
-          <div class="notif-dot" style="background:var(--amber)"></div>
-          <div>
-            <div style="font-weight:600;font-size:0.88rem">{{ a.drive_title }}</div>
-            <small>{{ a.company_name }} · {{ fmtDate(a.interview_date) }}</small>
+        <div class="col-sm-6 col-xl-3">
+          <div class="card text-center p-3">
+            <div class="stat-num text-warning">{{ countStatus('shortlisted') }}</div>
+            <div class="stat-label">Shortlisted</div>
+          </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+          <div class="card text-center p-3">
+            <div class="stat-num text-info">{{ countStatus('interview') }}</div>
+            <div class="stat-label">Interviews</div>
+          </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+          <div class="card text-center p-3">
+            <div class="stat-num text-success">{{ countStatus('selected') }}</div>
+            <div class="stat-label">Selected</div>
           </div>
         </div>
       </div>
 
-      <!-- Recent activity -->
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">Recent applications</span>
-          <RouterLink to="/student/applications" class="btn btn-sm">View all →</RouterLink>
-        </div>
-        <div v-if="!apps.length" class="empty-state" style="padding:20px">
-          <p>No applications yet</p>
-          <RouterLink to="/student/drives" class="btn btn-sm btn-primary" style="margin-top:10px">Browse drives</RouterLink>
-        </div>
-        <div v-for="a in apps.slice(0,5)" :key="a.id" class="notif-item">
-          <div class="notif-dot" :style="`background:${dotColor(a.status)}`"></div>
-          <div style="flex:1">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <div style="font-weight:600;font-size:0.88rem">{{ a.drive_title }}</div>
-              <StatusBadge :status="a.status" />
+      <div class="row g-3 mb-3">
+        <!-- Upcoming interviews -->
+        <div class="col-md-6">
+          <div class="card h-100">
+            <div class="card-header fw-semibold">Upcoming interviews</div>
+            <div v-if="!upcomingInterviews.length" class="card-body text-secondary text-center py-4">
+              No interviews scheduled
             </div>
-            <small>{{ a.company_name }} · {{ fmtDate(a.applied_at) }}</small>
+            <ul v-else class="list-group list-group-flush">
+              <li v-for="a in upcomingInterviews" :key="a.id" class="list-group-item">
+                <div class="d-flex align-items-start gap-2">
+                  <span class="badge bg-warning mt-1">&nbsp;</span>
+                  <div>
+                    <div class="fw-semibold small">{{ a.drive_title }}</div>
+                    <small class="text-secondary">{{ a.company_name }} · {{ fmtDate(a.interview_date) }}</small>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Recent applications -->
+        <div class="col-md-6">
+          <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span class="fw-semibold">Recent applications</span>
+              <RouterLink to="/student/applications" class="btn btn-outline-success btn-sm">View all →</RouterLink>
+            </div>
+            <div v-if="!apps.length" class="card-body text-center text-secondary py-4">
+              <p>No applications yet</p>
+              <RouterLink to="/student/drives" class="btn btn-success btn-sm">Browse drives</RouterLink>
+            </div>
+            <ul v-else class="list-group list-group-flush">
+              <li v-for="a in apps.slice(0,5)" :key="a.id" class="list-group-item">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <div class="fw-semibold small">{{ a.drive_title }}</div>
+                    <small class="text-secondary">{{ a.company_name }} · {{ fmtDate(a.applied_at) }}</small>
+                  </div>
+                  <span :class="statusBadge(a.status)">{{ a.status }}</span>
+                </div>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Eligible drives teaser -->
-    <div class="card" style="margin-top:16px">
-      <div class="card-header">
-        <span class="card-title">Open drives you're eligible for</span>
-        <RouterLink to="/student/drives" class="btn btn-sm btn-primary">Browse all →</RouterLink>
-      </div>
-      <div v-if="!eligibleDrives.length" class="empty-state" style="padding:20px">
-        <p>No eligible drives found right now</p>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">
-        <div v-for="d in eligibleDrives.slice(0,3)" :key="d.id"
-          class="drive-card" style="margin:0"
-          @click="$router.push(`/student/drives/${d.id}`)"
-        >
-          <div>
-            <div style="font-weight:600;font-size:0.9rem">{{ d.title }}</div>
-            <div style="color:var(--text2);font-size:0.8rem">{{ d.company_name }}</div>
-            <div class="drive-meta">
-              <span class="pill">{{ d.job_type }}</span>
-              <span class="pill">CGPA ≥ {{ d.min_cgpa }}</span>
+      <!-- Eligible drives teaser -->
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span class="fw-semibold">Open drives you're eligible for</span>
+          <RouterLink to="/student/drives" class="btn btn-success btn-sm">Browse all →</RouterLink>
+        </div>
+        <div v-if="!eligibleDrives.length" class="card-body text-center text-secondary py-4">
+          No eligible drives found right now
+        </div>
+        <div v-else class="card-body">
+          <div class="row g-3">
+            <div v-for="d in eligibleDrives.slice(0,3)" :key="d.id" class="col-md-4">
+              <div class="card h-100 border-success border-opacity-50" style="cursor:pointer"
+                @click="$router.push(`/student/drives/${d.id}`)">
+                <div class="card-body">
+                  <div class="fw-semibold mb-1">{{ d.title }}</div>
+                  <div class="text-secondary small mb-2">{{ d.company_name }}</div>
+                  <span class="badge bg-secondary me-1">{{ d.job_type }}</span>
+                  <span class="badge bg-secondary">CGPA ≥ {{ d.min_cgpa }}</span>
+                </div>
+                <div class="card-footer">
+                  <span class="badge bg-success">Eligible</span>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="drive-actions">
-            <span class="badge badge-green">Eligible</span>
-          </div>
         </div>
       </div>
-    </div>
+    </template>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { studentAPI } from '@/services/api'
-import { useToastStore } from '@/store/toast'
-import StatusBadge from '@/components/common/StatusBadge.vue'
+import { api } from '../../main.js'
 
-const toast = useToastStore()
-const apps  = ref([])
-const drives = ref([])
+const loading = ref(true)
+const apps    = ref([])
+const drives  = ref([])
 
 onMounted(async () => {
   try {
-    const [aRes, dRes] = await Promise.all([studentAPI.getApplications(), studentAPI.getDrives()])
-    apps.value   = aRes.data
-    drives.value = dRes.data
-  } catch { toast.error('Failed to load dashboard') }
+    const [appsData, drivesData] = await Promise.all([api('/student/applications'), api('/student/drives')])
+    apps.value   = appsData
+    drives.value = drivesData
+  } catch (e) { alert('Failed to load dashboard: ' + e.message) }
+  finally { loading.value = false }
 })
 
-const countStatus = s => apps.value.filter(a => a.status === s).length
-const upcomingInterviews = computed(() =>
-  apps.value.filter(a => a.interview_date && new Date(a.interview_date) >= new Date())
-)
-const eligibleDrives = computed(() =>
-  drives.value.filter(d => d.is_eligible && !d.already_applied)
-)
+function countStatus(s) { return apps.value.filter(a => a.status === s).length }
+const eligibleDrives      = computed(() => drives.value.filter(d => d.is_eligible && !d.already_applied))
+const upcomingInterviews  = computed(() => apps.value.filter(a => a.interview_date && new Date(a.interview_date) >= new Date()))
 
-function dotColor(s) {
-  return { applied:'var(--blue)', shortlisted:'var(--teal)', interview:'var(--amber)',
-           selected:'var(--green)', rejected:'var(--red)' }[s] || 'var(--text3)'
+function statusBadge(s) {
+  return { applied:'badge bg-primary', shortlisted:'badge bg-info text-dark', interview:'badge bg-warning text-dark', selected:'badge bg-success', rejected:'badge bg-danger' }[s] || 'badge bg-secondary'
 }
-function fmtDate(d) {
-  if (!d) return ''
-  return new Date(d).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })
-}
+function fmtDate(d) { return d ? new Date(d).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) : '' }
 </script>

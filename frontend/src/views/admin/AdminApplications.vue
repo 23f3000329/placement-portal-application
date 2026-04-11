@@ -1,18 +1,21 @@
 <template>
   <div class="page">
-    <h2 style="margin-bottom:20px">All Applications</h2>
-    <div v-if="loading" class="spinner"></div>
-    <div v-else-if="!applications.length" class="empty-state card">
-      <div class="icon">📝</div><p>No applications yet</p>
+    <h4 class="mb-4 fw-semibold">All Applications</h4>
+
+    <div v-if="loading" class="spinner-center"><div class="spinner-border text-success"></div></div>
+
+    <div v-else-if="!applications.length" class="text-center text-secondary py-5">
+      <i class="bi bi-file-earmark-text fs-1"></i><p class="mt-2">No applications yet</p>
     </div>
-    <div v-else class="table-wrap card" style="padding:0">
-      <table>
-        <thead>
+
+    <div v-else class="card p-0 overflow-hidden">
+      <table class="table table-hover mb-0">
+        <thead class="table-dark">
           <tr><th>Student</th><th>Drive</th><th>Company</th><th>Date</th><th>Status</th></tr>
         </thead>
         <tbody>
           <tr v-for="a in applications" :key="a.id">
-            <td>{{ a.student_name }}</td>
+            <td class="fw-semibold">{{ a.student_name }}</td>
             <td>{{ a.drive_title }}</td>
             <td>{{ a.company_name }}</td>
             <td>{{ fmtDate(a.applied_at) }}</td>
@@ -34,12 +37,12 @@ const loading      = ref(false)
 onMounted(async () => {
   loading.value = true
   try { applications.value = await api('/admin/applications') }
-  catch(e) { alert(e.message) }
+  catch (e) { alert(e.message) }
   finally { loading.value = false }
 })
 
 function statusBadge(s) {
-  return { applied:'badge badge-blue', shortlisted:'badge badge-teal', interview:'badge badge-amber', selected:'badge badge-green', rejected:'badge badge-red' }[s] || 'badge badge-gray'
+  return { applied:'badge bg-primary', shortlisted:'badge bg-info text-dark', interview:'badge bg-warning text-dark', selected:'badge bg-success', rejected:'badge bg-danger' }[s] || 'badge bg-secondary'
 }
 function fmtDate(d) { return d ? new Date(d).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) : '—' }
 </script>
