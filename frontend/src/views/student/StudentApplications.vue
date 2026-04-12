@@ -9,12 +9,12 @@
       </button>
     </div>
 
-    <!-- Export status banner -->
+    
     <div v-if="exportMsg" class="alert alert-info py-2 small">
       <i class="bi bi-info-circle me-1"></i>{{ exportMsg }}
     </div>
 
-    <!-- Status filter -->
+    
     <div class="row g-2 mb-3">
       <div class="col-md-3">
         <select v-model="statusFilter" class="form-select">

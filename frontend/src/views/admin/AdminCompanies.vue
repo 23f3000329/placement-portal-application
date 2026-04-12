@@ -2,7 +2,7 @@
   <div class="page">
     <h4 class="mb-4 fw-semibold">Companies</h4>
 
-    <!-- Search & filter -->
+    
     <div class="row g-2 mb-3">
       <div class="col-md-6">
         <input v-model="query" class="form-control" placeholder="Search by name…" @input="load" />

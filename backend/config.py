@@ -17,12 +17,12 @@ class Config:
     CELERY_BROKER_URL     = os.getenv("REDIS_URL", "redis://localhost:6379/0")
     CELERY_RESULT_BACKEND = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
-    # Flask-Caching — uses Redis, separate DB index (db=1) to not mix with Celery (db=0)
+    
     CACHE_TYPE              = "RedisCache"
     CACHE_REDIS_URL         = os.getenv("CACHE_REDIS_URL", "redis://localhost:6379/1")
-    CACHE_DEFAULT_TIMEOUT   = 300   # 5 minutes default expiry
+    CACHE_DEFAULT_TIMEOUT   = 300   
 
-    # MailHog — local fake email server (view at http://localhost:8025)
+    
     MAIL_SERVER        = "localhost"
     MAIL_PORT          = 1025
     MAIL_USE_TLS       = False

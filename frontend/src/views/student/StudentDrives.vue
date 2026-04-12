@@ -2,7 +2,7 @@
   <div class="page">
     <h4 class="mb-4 fw-semibold">Browse Drives</h4>
 
-    <!-- Filters -->
+    
     <div class="row g-2 mb-3">
       <div class="col-md-5">
         <input v-model="query" class="form-control" placeholder="Search by title, company, or skills…" />

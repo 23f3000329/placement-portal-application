@@ -8,7 +8,7 @@
 
     <div v-else class="row g-4">
 
-      <!-- Left: edit form -->
+      
       <div class="col-lg-7">
         <div class="card">
           <div class="card-header fw-semibold">Personal details</div>
@@ -70,10 +70,10 @@
         </div>
       </div>
 
-      <!-- Right: resume + skills -->
+      
       <div class="col-lg-5">
 
-        <!-- Resume upload -->
+        
         <div class="card mb-3">
           <div class="card-header fw-semibold">Resume</div>
           <div class="card-body">
@@ -99,7 +99,7 @@
           </div>
         </div>
 
-        <!-- Skills tags + completeness -->
+        
         <div class="card">
           <div class="card-header fw-semibold">Skills & completeness</div>
           <div class="card-body">

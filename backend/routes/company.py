@@ -19,7 +19,7 @@ def get_company():
     return Company.query.filter_by(user_id=uid).first()
 
 
-# ── Profile ───────────────────────────────────────────────────────────────────
+
 @company_bp.route("/profile", methods=["GET"])
 @jwt_required()
 def get_profile():
@@ -47,7 +47,7 @@ def update_profile():
     return jsonify(company.to_dict())
 
 
-# ── Drives ────────────────────────────────────────────────────────────────────
+
 @company_bp.route("/drives", methods=["GET"])
 @jwt_required()
 def list_drives():
@@ -99,7 +99,7 @@ def create_drive():
     db.session.add(drive)
     db.session.commit()
 
-    # New drive pending — admin stats (pending_drives count) must refresh
+   
     cache.delete("admin_stats")
 
     return jsonify(drive.to_dict()), 201
@@ -174,7 +174,7 @@ def update_application(aid):
 
     db.session.commit()
 
-    # Application status changed — admin views must refresh
+    
     cache.delete("admin_stats")
     cache.delete("admin_charts")
     cache.delete("admin_applications")
@@ -182,7 +182,7 @@ def update_application(aid):
     return jsonify(app.to_dict())
 
 
-# ── Stats ─────────────────────────────────────────────────────────────────────
+
 @company_bp.route("/stats", methods=["GET"])
 @jwt_required()
 def stats():

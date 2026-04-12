@@ -2,7 +2,7 @@ body {
   font-size: 14px;
 }
 
-/* Sidebar layout */
+
 .sidebar {
   width: 220px;
   min-height: 100vh;
@@ -39,13 +39,13 @@ body {
 .sidebar-footer { padding: 1rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.1); }
 .main-content { margin-left: 220px; min-height: 100vh; }
 
-/* Page padding */
+
 .page { padding: 1.5rem; max-width: 1100px; }
 
-/* Spinner */
+
 .spinner-center { display: flex; justify-content: center; padding: 3rem 0; }
 
-/* Chip selector (branch picker) */
+
 .chip-group { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.25rem; }
 .chip {
   padding: 0.25rem 0.75rem;
@@ -61,7 +61,7 @@ body {
 .chip:hover { background: rgba(255,255,255,0.07); }
 .chip.active { background: rgba(25,135,84,0.2); border-color: var(--bs-success); color: var(--bs-success); }
 
-/* Drive card */
+
 .drive-card {
   border: 1px solid var(--bs-border-color);
   border-radius: 0.5rem;
@@ -78,7 +78,7 @@ body {
 .drive-card.disabled { opacity: 0.5; cursor: default; pointer-events: none; }
 .drive-actions { display: flex; flex-direction: column; gap: 0.4rem; align-items: flex-end; }
 
-/* Notif row */
+
 .notif-row {
   display: flex; gap: 0.6rem; align-items: flex-start;
   padding: 0.6rem 0; border-bottom: 1px solid var(--bs-border-color);
@@ -87,26 +87,25 @@ body {
 .notif-row:last-child { border-bottom: none; }
 .notif-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
 
-/* Progress bar wrapper */
 .progress-thin { height: 6px; }
 
-/* Auth page */
+
 .auth-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
 .auth-card { width: 100%; max-width: 440px; }
 .auth-logo { text-align: center; margin-bottom: 1.5rem; font-size: 1.4rem; font-weight: 700; }
 .auth-logo span { color: var(--bs-success); }
 
-/* Stats card number */
+
 .stat-num { font-size: 2rem; font-weight: 700; line-height: 1.1; }
 .stat-label { font-size: 0.75rem; color: var(--bs-secondary-color); margin-top: 4px; }
 
-/* Section label */
+
 .section-label {
   font-size: 0.72rem; font-weight: 600; color: var(--bs-secondary-color);
   text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.4rem;
 }
 
-/* Responsive */
+
 @media (max-width: 768px) {
   .sidebar { display: none; }
   .main-content { margin-left: 0; }

@@ -22,7 +22,6 @@
       </div>
     </aside>
 
-    <!-- Main content -->
     <div class="main-content flex-grow-1">
       <RouterView />
     </div>

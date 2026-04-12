@@ -8,7 +8,6 @@
       </button>
     </div>
 
-    <!-- Create drive form -->
     <div v-if="showForm" class="card mb-4">
       <div class="card-header fw-semibold">New Placement Drive</div>
       <div class="card-body">

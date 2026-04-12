@@ -3,15 +3,12 @@ import { createRouter, createWebHistory } from 'vue-router'
 import App from './App.vue'
 import './assets/main.css'
 
-// ── Simple auth helper (no Pinia) ────────────────────────────────────────────
-// We just use localStorage directly in each component.
-// Helper functions exported so any file can import them.
+
 export function getToken()   { return localStorage.getItem('access_token') }
 export function getUser()    { return JSON.parse(localStorage.getItem('user') || 'null') }
 export function isLoggedIn() { return !!getToken() && !!getUser() }
 
-// ── Simple API helper (no Axios) ─────────────────────────────────────────────
-// Wraps fetch, attaches JWT header automatically.
+
 export async function api(path, options = {}) {
   const token = getToken()
   const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) }
@@ -30,7 +27,7 @@ export async function api(path, options = {}) {
   return data
 }
 
-// multipart upload (for resume) — no Content-Type header so browser sets boundary
+
 export async function apiUpload(path, formData) {
   const token = getToken()
   const headers = {}
@@ -41,7 +38,7 @@ export async function apiUpload(path, formData) {
   return data
 }
 
-// ── Router ────────────────────────────────────────────────────────────────────
+
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -50,7 +47,7 @@ const router = createRouter({
     { path: '/register/student',    component: () => import('./views/RegisterStudent.vue') },
     { path: '/register/company',    component: () => import('./views/RegisterCompany.vue') },
 
-    // Admin
+    
     { path: '/admin', component: () => import('./views/admin/AdminLayout.vue'),
       meta: { role: 'admin' },
       children: [
@@ -63,7 +60,7 @@ const router = createRouter({
       ]
     },
 
-    // Company
+    
     { path: '/company', component: () => import('./views/company/CompanyLayout.vue'),
       meta: { role: 'company' },
       children: [
@@ -75,7 +72,7 @@ const router = createRouter({
       ]
     },
 
-    // Student
+  
     { path: '/student', component: () => import('./views/student/StudentLayout.vue'),
       meta: { role: 'student' },
       children: [
@@ -93,7 +90,7 @@ const router = createRouter({
   scrollBehavior: () => ({ top: 0 }),
 })
 
-// Navigation guard — simple role check
+
 router.beforeEach((to, from, next) => {
   const user = getUser()
   const token = getToken()

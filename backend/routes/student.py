@@ -50,7 +50,6 @@ def update_profile():
         if f in data:
             setattr(student, f, data[f])
     db.session.commit()
-    # Eligibility depends on CGPA/branch/year — clear drives cache
     cache.delete("student_drives_")
     return jsonify(student.to_dict())
 

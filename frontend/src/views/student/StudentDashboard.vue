@@ -5,7 +5,6 @@
     <div v-if="loading" class="spinner-center"><div class="spinner-border text-success"></div></div>
 
     <template v-else>
-      <!-- Stats -->
       <div class="row g-3 mb-4">
         <div class="col-sm-6 col-xl-3">
           <div class="card text-center p-3">
@@ -34,7 +33,6 @@
       </div>
 
       <div class="row g-3 mb-3">
-        <!-- Upcoming interviews -->
         <div class="col-md-6">
           <div class="card h-100">
             <div class="card-header fw-semibold">Upcoming interviews</div>
@@ -55,7 +53,6 @@
           </div>
         </div>
 
-        <!-- Recent applications -->
         <div class="col-md-6">
           <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -81,7 +78,7 @@
         </div>
       </div>
 
-      <!-- Eligible drives teaser -->
+      
       <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
           <span class="fw-semibold">Open drives you're eligible for</span>

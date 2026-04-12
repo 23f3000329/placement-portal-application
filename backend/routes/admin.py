@@ -216,7 +216,7 @@ def activate_student(sid):
     return jsonify({"message": "Activated"})
 
 
-# ── Drives ────────────────────────────────────────────────────────────────────
+
 @admin_bp.route("/drives", methods=["GET"])
 @jwt_required()
 def list_drives():

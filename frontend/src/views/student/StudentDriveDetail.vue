@@ -11,7 +11,7 @@
     <template v-else-if="drive">
       <div class="row g-4">
 
-        <!-- Left: drive details -->
+        
         <div class="col-lg-8">
           <div class="card mb-3">
             <div class="card-body">
@@ -49,7 +49,7 @@
             </div>
           </div>
 
-          <!-- Eligibility criteria -->
+         
           <div class="card">
             <div class="card-header fw-semibold">Eligibility criteria</div>
             <ul class="list-group list-group-flush">
@@ -76,10 +76,10 @@
           </div>
         </div>
 
-        <!-- Right: apply card -->
+        
         <div class="col-lg-4">
 
-          <!-- Already applied -->
+         
           <div v-if="drive.already_applied && drive.application" class="card">
             <div class="card-header fw-semibold">Your application</div>
             <div class="card-body">
@@ -101,7 +101,7 @@
             </div>
           </div>
 
-          <!-- Not yet applied -->
+         
           <div v-else class="card">
             <div class="card-header fw-semibold">Apply for this drive</div>
             <div class="card-body">

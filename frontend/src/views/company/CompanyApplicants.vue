@@ -69,8 +69,6 @@
                   @blur="updateFeedback(a, $event.target.value)" />
               </td>
               <td>
-                <!-- Resume view: token passed as query param because browser tabs
-                     cannot send Authorization headers, only fetch() can. -->
                 <a v-if="a.student_resume"
                   :href="`/api/student/resume/${a.student_resume}?token=${getToken()}`"
                   target="_blank"

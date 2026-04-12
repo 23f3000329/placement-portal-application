@@ -12,7 +12,7 @@ def register_tasks(celery):
     Decorates each job function and binds it to the Celery instance.
     """
 
-    # ── Daily deadline reminders ──────────────────────────────────────────────
+   
     @celery.task(name="tasks.jobs.send_deadline_reminders")
     def send_deadline_reminders():
         from models import Drive, Application, Student
@@ -37,7 +37,7 @@ def register_tasks(celery):
                     count += 1
         return {"reminders_sent": count}
 
-    # ── Monthly report ────────────────────────────────────────────────────────
+
     @celery.task(name="tasks.jobs.send_monthly_report")
     def send_monthly_report():
         from models import Drive, Application
@@ -70,7 +70,7 @@ def register_tasks(celery):
         mail.send(msg)
         return {"report_sent": True, "month": last_month_start.strftime("%B %Y")}
 
-    # ── CSV export (user-triggered async job) ─────────────────────────────────
+    
     @celery.task(name="tasks.jobs.export_applications_csv", bind=True)
     def export_applications_csv(self, student_id, email):
         from models import Application
@@ -81,8 +81,6 @@ def register_tasks(celery):
 
             output = io.StringIO()
             writer = csv.writer(output)
-            # Required columns per problem statement:
-            # Student ID, Company Name, Drive Title, Application Status, Dates
             writer.writerow([
                 "Application ID", "Student ID", "Student Name",
                 "Company Name", "Drive Title", "Job Type",
@@ -116,7 +114,7 @@ def register_tasks(celery):
             raise
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+
 
 def _send_reminder_email(student, drive, days_left):
     try:
