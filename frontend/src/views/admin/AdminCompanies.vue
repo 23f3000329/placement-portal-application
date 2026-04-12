@@ -91,8 +91,12 @@ async function load() {
 
 async function action(id, type) {
   if (!confirm(`${type} this company?`)) return
-  try { await api(`/admin/companies/${id}/${type}`, { method: 'PATCH' }); load() }
+  loading.value=true
+  try { await api(`/admin/companies/${id}/${type}`, { method: 'PATCH' }); await load() }
   catch (e) { alert(e.message) }
+  finally{
+    loading.value=false
+  }
 }
 
 function statusBadge(s) {

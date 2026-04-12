@@ -35,7 +35,7 @@
           <thead class="table-dark">
             <tr>
               <th>Student</th><th>Branch</th><th>CGPA</th><th>Applied</th>
-              <th>Status</th><th>Update Status</th><th>Interview Date</th><th>Feedback</th>
+              <th>Status</th><th>Update Status</th><th>Interview Date</th><th>Feedback</th><th>Resume</th>
             </tr>
           </thead>
           <tbody>
@@ -67,6 +67,16 @@
                 <input type="text" class="form-control form-control-sm" style="width:180px"
                   :value="a.company_feedback || ''" placeholder="Add feedback…"
                   @blur="updateFeedback(a, $event.target.value)" />
+              </td>
+              <td>
+                <!-- Resume view: links to backend upload folder -->
+                <a v-if="a.student_resume"
+                  :href="`/api/student/resume/${a.student_resume}`"
+                  target="_blank"
+                  class="btn btn-outline-secondary btn-sm">
+                  <i class="bi bi-file-earmark-person"></i> View
+                </a>
+                <span v-else class="text-secondary small">No resume</span>
               </td>
             </tr>
           </tbody>

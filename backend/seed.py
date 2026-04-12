@@ -19,7 +19,7 @@ def seed():
         admin.set_password("admin@123")
         db.session.add(admin)
         db.session.flush()
-        print("✓ Admin: admin@institute.edu / admin@123")
+        print(" Admin: admin@institute.edu / admin@123")
 
         # ── Companies ─────────────────────────────────────────────────────────
         companies_data = [
@@ -55,7 +55,7 @@ def seed():
             db.session.add(c)
             db.session.flush()
             company_objs.append(c)
-            print(f"✓ Company: {cd['email']} / company@123  [{cd['approval_status']}]")
+            print(f" Company: {cd['email']} / company@123  [{cd['approval_status']}]")
 
         razorpay, juspay, freshworks, zoho = company_objs
 
@@ -123,7 +123,7 @@ def seed():
             db.session.add(dr)
             db.session.flush()
             drive_objs.append(dr)
-            print(f"✓ Drive: {dd['title']} @ {dd['company'].name}  [{dd['status']}]")
+            print(f" Drive: {dd['title']} @ {dd['company'].name}  [{dd['status']}]")
 
         # ── Students ──────────────────────────────────────────────────────────
         students_data = [
@@ -195,7 +195,7 @@ def seed():
             db.session.add(a)
 
         db.session.commit()
-        print("\n✅ Seed complete!")
+        print("\n Seed complete!")
         print("─" * 40)
         print("Admin    → admin@institute.edu / admin@123")
         print("Company  → hr@razorpay.com    / company@123")

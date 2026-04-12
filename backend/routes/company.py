@@ -1,7 +1,7 @@
 import json
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt, get_jwt_identity
-from extensions import db
+from extensions import db, cache
 from models import Company, Drive, Application, Student
 
 company_bp = Blueprint("company", __name__, url_prefix="/api/company")
@@ -98,6 +98,10 @@ def create_drive():
     )
     db.session.add(drive)
     db.session.commit()
+
+    # New drive pending — admin stats (pending_drives count) must refresh
+    cache.delete("admin_stats")
+
     return jsonify(drive.to_dict()), 201
 
 
@@ -107,8 +111,8 @@ def update_drive(did):
     err = company_required()
     if err: return err
     company = get_company()
-    drive = Drive.query.filter_by(id=did, company_id=company.id).first_or_404()
-    data = request.get_json() or {}
+    drive   = Drive.query.filter_by(id=did, company_id=company.id).first_or_404()
+    data    = request.get_json() or {}
 
     from datetime import datetime
     updatable = ["title", "job_description", "salary_min", "salary_max",
@@ -126,6 +130,7 @@ def update_drive(did):
         drive.status = data["status"]
 
     db.session.commit()
+    cache.delete("student_drives")   # drive details changed — students must see fresh data
     return jsonify(drive.to_dict())
 
 
@@ -135,7 +140,7 @@ def drive_applications(did):
     err = company_required()
     if err: return err
     company = get_company()
-    drive = Drive.query.filter_by(id=did, company_id=company.id).first_or_404()
+    drive   = Drive.query.filter_by(id=did, company_id=company.id).first_or_404()
     return jsonify([a.to_dict() for a in drive.applications])
 
 
@@ -145,9 +150,8 @@ def update_application(aid):
     err = company_required()
     if err: return err
     company = get_company()
-    app = Application.query.get_or_404(aid)
+    app     = Application.query.get_or_404(aid)
 
-    # Verify this application belongs to a drive owned by this company
     if app.drive.company_id != company.id:
         return jsonify({"error": "Forbidden"}), 403
 
@@ -157,7 +161,6 @@ def update_application(aid):
         if data["status"] not in valid_statuses:
             return jsonify({"error": "Invalid status"}), 400
         app.status = data["status"]
-        # Mark student as placed when selected
         if data["status"] == "selected":
             app.student.is_placed = True
 
@@ -170,6 +173,12 @@ def update_application(aid):
         app.company_feedback = data["company_feedback"]
 
     db.session.commit()
+
+    # Application status changed — admin views must refresh
+    cache.delete("admin_stats")
+    cache.delete("admin_charts")
+    cache.delete("admin_applications")
+
     return jsonify(app.to_dict())
 
 
@@ -183,15 +192,15 @@ def stats():
     if not company:
         return jsonify({}), 404
 
-    drives = Drive.query.filter_by(company_id=company.id).all()
-    all_apps = Application.query.join(Drive).filter(Drive.company_id == company.id).all()
+    drives    = Drive.query.filter_by(company_id=company.id).all()
+    all_apps  = Application.query.join(Drive).filter(Drive.company_id == company.id).all()
     shortlisted = [a for a in all_apps if a.status in ["shortlisted", "interview"]]
-    selected = [a for a in all_apps if a.status == "selected"]
+    selected    = [a for a in all_apps if a.status == "selected"]
 
     return jsonify({
-        "total_drives": len(drives),
-        "active_drives": len([d for d in drives if d.status == "approved"]),
+        "total_drives":    len(drives),
+        "active_drives":   len([d for d in drives if d.status == "approved"]),
         "total_applicants": len(all_apps),
-        "shortlisted": len(shortlisted),
-        "selected": len(selected),
+        "shortlisted":     len(shortlisted),
+        "selected":        len(selected),
     })

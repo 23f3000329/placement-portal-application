@@ -45,8 +45,9 @@
             <tr>
               <th>Drive</th>
               <th>Company</th>
+              <th>Interview Mode</th>
               <th>Applied</th>
-              <th>Interview</th>
+              <th>Interview Date</th>
               <th>Status</th>
               <th>Feedback</th>
             </tr>
@@ -59,6 +60,12 @@
                 </RouterLink>
               </td>
               <td>{{ a.company_name }}</td>
+              <!-- Interview mode comes from drive; shown as In-person/Virtual/Hybrid -->
+              <td>
+                <span class="badge bg-secondary">
+                  {{ a.interview_mode || '—' }}
+                </span>
+              </td>
               <td>{{ fmtDate(a.applied_at) }}</td>
               <td>{{ a.interview_date ? fmtDate(a.interview_date) : '—' }}</td>
               <td><span :class="statusBadge(a.status)">{{ a.status }}</span></td>
@@ -102,7 +109,6 @@ async function exportCSV() {
   try {
     const data = await api('/student/export-csv', { method: 'POST' })
     exportMsg.value = data.message || 'Export started! Check your email (MailHog) shortly.'
-    // Poll every 3 seconds to check if the Celery task finished
     if (data.task_id) pollExport(data.task_id)
   } catch (e) {
     exportMsg.value = 'Export failed: ' + e.message

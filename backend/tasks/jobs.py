@@ -1,23 +1,22 @@
 import csv
 import io
-import json
 from datetime import datetime, timedelta
-from flask import current_app, render_template_string
+from flask import current_app
 from flask_mail import Message
 from extensions import db, mail
 
-# Import celery lazily to avoid circular imports
-def get_celery():
-    from app import celery
-    return celery
 
-# ── Daily deadline reminders ─────────────────────────────────────────────────
-def send_deadline_reminders():
-    from models import Drive, Application, Student
-    celery = get_celery()
+def register_tasks(celery):
+    """
+    Called from celery_worker.py after the Celery app is created.
+    Decorates each job function and binds it to the Celery instance.
+    """
 
+    # ── Daily deadline reminders ──────────────────────────────────────────────
     @celery.task(name="tasks.jobs.send_deadline_reminders")
-    def _task():
+    def send_deadline_reminders():
+        from models import Drive, Application, Student
+
         cutoff = datetime.utcnow() + timedelta(days=3)
         upcoming = Drive.query.filter(
             Drive.status == "approved",
@@ -38,15 +37,11 @@ def send_deadline_reminders():
                     count += 1
         return {"reminders_sent": count}
 
-    return _task
-
-# ── Monthly report ────────────────────────────────────────────────────────────
-def send_monthly_report():
-    from models import Drive, Application, Student, Company
-    celery = get_celery()
-
+    # ── Monthly report ────────────────────────────────────────────────────────
     @celery.task(name="tasks.jobs.send_monthly_report")
-    def _task():
+    def send_monthly_report():
+        from models import Drive, Application
+
         now = datetime.utcnow()
         first_of_month = now.replace(day=1, hour=0, minute=0, second=0)
         last_month_start = (first_of_month - timedelta(days=1)).replace(day=1)
@@ -75,26 +70,28 @@ def send_monthly_report():
         mail.send(msg)
         return {"report_sent": True, "month": last_month_start.strftime("%B %Y")}
 
-    return _task
-
-# ── CSV export (user-triggered) ───────────────────────────────────────────────
-def export_applications_csv():
-    from models import Application
-    celery = get_celery()
-
+    # ── CSV export (user-triggered async job) ─────────────────────────────────
     @celery.task(name="tasks.jobs.export_applications_csv", bind=True)
-    def _task(self, student_id, email):
+    def export_applications_csv(self, student_id, email):
+        from models import Application
+
         try:
             self.update_state(state="PROGRESS", meta={"status": "Fetching applications…"})
             apps = Application.query.filter_by(student_id=student_id).all()
 
             output = io.StringIO()
             writer = csv.writer(output)
-            writer.writerow(["Application ID","Student Name","Company","Drive Title",
-                             "Job Type","Status","Applied At","Interview Date","Feedback"])
+            # Required columns per problem statement:
+            # Student ID, Company Name, Drive Title, Application Status, Dates
+            writer.writerow([
+                "Application ID", "Student ID", "Student Name",
+                "Company Name", "Drive Title", "Job Type",
+                "Status", "Applied At", "Interview Date", "Feedback"
+            ])
             for a in apps:
                 writer.writerow([
                     a.id,
+                    a.student_id,
                     a.student.name if a.student else "",
                     a.drive.company.name if a.drive and a.drive.company else "",
                     a.drive.title if a.drive else "",
@@ -118,9 +115,9 @@ def export_applications_csv():
             self.update_state(state="FAILURE", meta={"error": str(exc)})
             raise
 
-    return _task
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
 def _send_reminder_email(student, drive, days_left):
     try:
         msg = Message(
@@ -139,7 +136,15 @@ def _send_reminder_email(student, drive, days_left):
     except Exception:
         pass
 
+
 def _build_report_html(month, drives, applications, selected):
+    rate = round(len(selected) / len(applications) * 100, 1) if applications else 0
+    drive_rows = "".join(
+        f'<tr><td style="padding:8px">{d.title}</td>'
+        f'<td style="padding:8px">{d.company.name}</td>'
+        f'<td style="padding:8px">{len(d.applications)}</td></tr>'
+        for d in drives
+    )
     return f"""
     <html><body style="font-family:sans-serif;color:#1a1a18;padding:32px">
     <h1 style="color:#1D9E75">Monthly Placement Report — {month}</h1>
@@ -158,24 +163,17 @@ def _build_report_html(month, drives, applications, selected):
       </tr>
       <tr>
         <td style="padding:12px;font-weight:600">Selection rate</td>
-        <td style="padding:12px">{round(len(selected)/len(applications)*100, 1) if applications else 0}%</td>
+        <td style="padding:12px">{rate}%</td>
       </tr>
     </table>
     <h2 style="margin-top:32px">Drive Summary</h2>
     <table style="border-collapse:collapse;width:100%">
-      <tr style="background:#f5f5f3"><th style="padding:8px;text-align:left">Drive</th>
+      <tr style="background:#f5f5f3">
+        <th style="padding:8px;text-align:left">Drive</th>
         <th style="padding:8px;text-align:left">Company</th>
-        <th style="padding:8px;text-align:left">Applications</th></tr>
-      {"".join(f'<tr><td style="padding:8px">{d.title}</td><td style="padding:8px">{d.company.name}</td><td style="padding:8px">{len(d.applications)}</td></tr>' for d in drives)}
+        <th style="padding:8px;text-align:left">Applications</th>
+      </tr>
+      {drive_rows}
     </table>
     </body></html>
     """
-def register_tasks(celery):
-    """
-    Registers the jobs into the Celery instance. 
-    This is what celery_worker.py calls during startup.
-    """
-    # We call the functions to define the tasks inside Celery's scope
-    send_deadline_reminders()
-    send_monthly_report()
-    export_applications_csv()

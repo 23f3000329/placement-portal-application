@@ -1,7 +1,7 @@
 import os
 from flask import Flask, jsonify
 from config import config
-from extensions import db, jwt, cors, mail
+from extensions import db, jwt, cors, mail, cache
 
 
 def create_app(config_name="default"):
@@ -10,13 +10,15 @@ def create_app(config_name="default"):
 
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
+    # Initialise all extensions
     db.init_app(app)
     jwt.init_app(app)
     cors.init_app(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
     mail.init_app(app)
+    cache.init_app(app)   # ← Redis caching
 
-    from routes.auth import auth_bp
-    from routes.admin import admin_bp
+    from routes.auth    import auth_bp
+    from routes.admin   import admin_bp
     from routes.company import company_bp
     from routes.student import student_bp
 
@@ -65,7 +67,7 @@ def _seed_admin(app):
         print(f"[seed] Admin created → {email} / admin@123")
 
 
-app = create_app(os.getenv("FLASK_ENV", "development"))
+app    = create_app(os.getenv("FLASK_ENV", "development"))
 
 # Celery — imported after app so context is available
 from celery_worker import make_celery, register_tasks
