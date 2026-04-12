@@ -69,12 +69,13 @@
                   @blur="updateFeedback(a, $event.target.value)" />
               </td>
               <td>
-                <!-- Resume view: links to backend upload folder -->
+                <!-- Resume view: token passed as query param because browser tabs
+                     cannot send Authorization headers, only fetch() can. -->
                 <a v-if="a.student_resume"
-                  :href="`/api/student/resume/${a.student_resume}`"
+                  :href="`/api/student/resume/${a.student_resume}?token=${getToken()}`"
                   target="_blank"
                   class="btn btn-outline-secondary btn-sm">
-                  <i class="bi bi-file-earmark-person"></i> View
+                  <i class="bi bi-file-earmark-person"></i> View Resume
                 </a>
                 <span v-else class="text-secondary small">No resume</span>
               </td>
@@ -89,7 +90,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { api } from '../../main.js'
+import { api, getToken } from '../../main.js'
 
 const route        = useRoute()
 const driveId      = Number(route.params.id)
@@ -124,22 +125,70 @@ const filtered = computed(() => {
 })
 
 async function updateStatus(app, newStatus) {
-  try { Object.assign(app, await api(`/company/applications/${app.id}`, { method:'PATCH', body: JSON.stringify({ status: newStatus }) })) }
-  catch (e) { alert('Update failed: ' + e.message) }
+  try {
+    Object.assign(
+      app,
+      await api(`/company/applications/${app.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: newStatus })
+      })
+    )
+  } catch (e) {
+    alert('Update failed: ' + e.message)
+  }
 }
+
 async function updateInterview(app, dateStr) {
   if (!dateStr) return
-  try { Object.assign(app, await api(`/company/applications/${app.id}`, { method:'PATCH', body: JSON.stringify({ interview_date: new Date(dateStr).toISOString() }) })) }
-  catch (e) { alert('Update failed: ' + e.message) }
+
+  try {
+    Object.assign(
+      app,
+      await api(`/company/applications/${app.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          interview_date: new Date(dateStr).toISOString()
+        })
+      })
+    )
+  } catch (e) {
+    alert('Update failed: ' + e.message)
+  }
 }
+
 async function updateFeedback(app, feedback) {
   if (feedback === (app.company_feedback || '')) return
-  try { Object.assign(app, await api(`/company/applications/${app.id}`, { method:'PATCH', body: JSON.stringify({ company_feedback: feedback }) })) }
-  catch (e) { alert('Update failed: ' + e.message) }
+
+  try {
+    Object.assign(
+      app,
+      await api(`/company/applications/${app.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ company_feedback: feedback })
+      })
+    )
+  } catch (e) {
+    alert('Update failed: ' + e.message)
+  }
 }
 
 function statusBadge(s) {
-  return { applied:'badge bg-primary', shortlisted:'badge bg-info text-dark', interview:'badge bg-warning text-dark', selected:'badge bg-success', rejected:'badge bg-danger' }[s] || 'badge bg-secondary'
+  return {
+    applied: 'badge bg-primary',
+    shortlisted: 'badge bg-info text-dark',
+    interview: 'badge bg-warning text-dark',
+    selected: 'badge bg-success',
+    rejected: 'badge bg-danger'
+  }[s] || 'badge bg-secondary'
 }
-function fmtDate(d) { return d ? new Date(d).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) : '—' }
+
+function fmtDate(d) {
+  return d
+    ? new Date(d).toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      })
+    : '—'
+}
 </script>

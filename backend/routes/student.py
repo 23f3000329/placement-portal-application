@@ -211,17 +211,31 @@ def export_status(task_id):
 
 
 @student_bp.route("/resume/<filename>", methods=["GET"])
-@jwt_required()
 def serve_resume(filename):
-    claims = get_jwt()
-    if claims.get("role") not in ["company", "admin"]:
-        return jsonify({"error": "Forbidden"}), 403
+   
+    from flask_jwt_extended import decode_token
+    from flask_jwt_extended.exceptions import JWTDecodeError
+    from jwt.exceptions import InvalidTokenError
+
+    token = request.args.get("token", "")
+    if not token:
+        return jsonify({"error": "Authorization required"}), 401
+
+    try:
+        decoded = decode_token(token)
+    except (JWTDecodeError, InvalidTokenError, Exception):
+        return jsonify({"error": "Invalid or expired token"}), 401
+
+    role = decoded.get("role") or decoded.get("sub", {})
+    
+    if decoded.get("role") not in ["company", "admin"]:
+        return jsonify({"error": "Only companies and admins can view resumes"}), 403
+
     return send_from_directory(current_app.config["UPLOAD_FOLDER"], filename)
 
 
-
-
 def _check_eligibility(student, drive):
+    """Check eligibility using SQLAlchemy model objects."""
     import json
     if not student:
         return False

@@ -128,22 +128,22 @@ def seed():
         # ── Students ──────────────────────────────────────────────────────────
         students_data = [
             dict(email="arjun@student.edu", password="student@123",
-                 name="Arjun Menon", roll="CS21001", branch="CSE", year=4, cgpa=8.7,
+                 name="Arjun", roll="CS21001", branch="CSE", year=4, cgpa=8.7,
                  phone="9876543210", skills="Python,Java,React,SQL"),
             dict(email="priya@student.edu", password="student@123",
-                 name="Priya Nair", roll="CS21002", branch="CSE", year=4, cgpa=9.1,
+                 name="Priya ", roll="CS21002", branch="CSE", year=4, cgpa=9.1,
                  phone="9876543211", skills="Python,ML,TensorFlow,SQL"),
             dict(email="rohit@student.edu", password="student@123",
-                 name="Rohit Kumar", roll="EC21003", branch="ECE", year=4, cgpa=7.8,
+                 name="Rohit ", roll="EC21003", branch="ECE", year=4, cgpa=7.8,
                  phone="9876543212", skills="Embedded C,Python,VLSI"),
             dict(email="sneha@student.edu", password="student@123",
-                 name="Sneha Pillai", roll="CS21004", branch="CSE", year=4, cgpa=9.4,
+                 name="Sneha ", roll="CS21004", branch="CSE", year=4, cgpa=9.4,
                  phone="9876543213", skills="Java,Spring Boot,Kubernetes,Docker"),
             dict(email="vikram@student.edu", password="student@123",
-                 name="Vikram Singh", roll="CS21005", branch="CSE", year=4, cgpa=7.2,
+                 name="Vikram ", roll="CS21005", branch="CSE", year=4, cgpa=7.2,
                  phone="9876543214", skills="JavaScript,React,Node.js"),
             dict(email="meera@student.edu", password="student@123",
-                 name="Meera Iyer", roll="DS21006", branch="DS", year=4, cgpa=8.5,
+                 name="Meera ", roll="DS21006", branch="DS", year=4, cgpa=8.5,
                  phone="9876543215", skills="Python,R,ML,Statistics"),
         ]
 
